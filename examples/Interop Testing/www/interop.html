@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Web Hub demo</title>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="wot.js"></script>
+<script type="text/javascript" src="interop.js"></script>
+<style>
+	h1 img { height: 2em; position: relative; top: 0.6em; }
+	pre b { color: #A00 }
+</style>
+</head>
+<body>
+<h1><img src="f-interop.png" alt="logo"> F-Interop Interoperability Tests</h1>
+<p>This is a test coordinator you can run against different Web of Things platforms</p>
+
+<form name="platform">
+<label><input name="hub" type="radio" value="ArenaWebHub-SSE" checked="true">Arena Web Hub with server-sent events</label><br>
+<label><input name="hub" type="radio" value="ArenaWebHub-WSS">Arena Web Hub with web sockets</label><br>
+<label><input name="hub" type="radio" value="ThingWeb-WS">Siemens ThingWeb with web sockets for events</label><br>
+<!--<label><input name="hub" type="radio" value="ThingWeb-LP">Siemens ThingWeb with long polling for events</label><br>-->
+<label><input name="hub" type="radio" value="ThingsGateway">Mozilla Things Gateway using web sockets</label>
+<p><button name="start">execute tests</button></p>
+</form>
+
+<h2>Test Log</h2>
+<pre id="log"></pre>
+
+
+<h2>Model</h2>
+<pre id="model"></pre>
+
+<h2>Properties</h2>
+<ul id="plist">
+</ul>
+
+</body>
+</html>

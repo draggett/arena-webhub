@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Web Hub Login Page</title>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="login.js"></script>
+<style>
+body {
+	margin: 4em;
+	font-family: sans-serif;
+	background-image: url("texture1.jpg");
+	background-repeat: repeat;
+}
+h2 {
+	color: #888;
+}
+.person {
+	height: 2.3ex;
+	vertical-align: bottom;
+}
+label {
+	color: #888;
+}
+input {
+	width: 42ex;
+	height: 3ex;
+	font-size: 2ex;
+	color: #AAA;
+	background: #EEE;
+}
+input:active, input:focus {
+	border-color: #CFC;
+	color: black;
+}
+button {
+	height: 3ex;
+	border-radius: 8px;
+	border: solid 1px #DDE;
+	font-size: 2ex;
+	background: #EEF;
+}
+
+div {
+	position: static;
+}
+</style>
+</head>
+<body>
+<h1>Web Hub Login Page</h1>
+<p>Login or create a new account for yourself</p>
+
+<div style="width:50%;background-color:rgb(245,245,250);padding:1em;min-width:45ex;max-width:45ex">
+<div>
+<form name="login">
+<h2><img class="person" src="person.png" alt=""> LOGIN</h2>
+<p><label>EMAIL ADDRESS<br>
+<input name="email" value="mary.smith@example.org"></label></p>
+
+<p><label>PASSWORD<br>
+<input name="password" value="password - may contain spaces"></label></p>
+<p><button name="login" title="to create and store the authorisation token">Login</button>&emsp;&emsp;&emsp;&emsp;
+<button name="forgot" title="to send you an email with a link for changing your password">Forgot your password?</button>&emsp;&emsp;&emsp;&emsp;
+<button name="logout" title="to remove the authorisation token">Logout</button></p>
+</form>
+</div>
+<div>
+<h2><img class="person" src="person-plus.png" alt="">  ADD USER?</h2>
+<button id="add_user" title="you will be asked for your credentials">Add new account</button>
+<form name="register">
+<p><label>Full Name<br>
+<input name="fullname" value="Mary Smith"></label></p>
+
+<p><label>EMAIL ADDRESS<br>
+<input name="email" value="mary.smith@example.org"></label></p>
+
+<p><label>PASSWORD<br>
+<input name="password" value="password - may contain spaces"></label></p>
+<p><button name="register" title="to send you an email with a link to activate the new account">Register</button>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+<button name="cancel">Cancel</button></p>
+</form>
+<?
+</div>
+<div id="drop_user">
+<h2><img class="person" src="person-minus.png" alt="">  FORGET USER?</h2>
+<button id="remove" title="along with the authorisation token">Remove account</button>
+</div>
+</div>
+</body>
+</html>

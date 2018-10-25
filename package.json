@@ -1,0 +1,15 @@
+{
+	"name": "arena-webhub",
+	"version": "1.0.0",
+	"description": "Compact Web Hub for the Web of Things",
+	"homepage": "https://github.com/draggett/arena-webhub",
+	"bugs": "https://github.com/draggett/arena-webhub/issues/",
+	"author": {
+		"name": "Dave Raggett",
+		"email": "dsr@w3.org"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"jshashes": "1.0.7"
+  	}
+}
