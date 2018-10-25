@@ -517,6 +517,11 @@ function produce(model) {
 			
 			thing.receive = function (socket, message) {
 				// handle incoming web socket message
+				
+				// be safe against zero length messages
+				if (message.length === 0)
+					return;
+					
 				let fail = (id, status, description) => {
 					if (typeof id !== "string")
 						id = "unknown";
