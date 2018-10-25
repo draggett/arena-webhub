@@ -140,7 +140,7 @@ This section describes the API exposed by the Arena Web Hub for server-side appl
 
 Each thing exposes the following interface:
 
-```json
+```javascript
 class Thing {
     id // string - a unique id for the thing
     name // string - a human friendly name for the  thing
@@ -154,7 +154,7 @@ class Thing {
 
 Properties expose the following interface:
 
-```json
+```javascript
 class ThingProperty {
     thing // the thing this property belongs to
 	name // the name of this property
@@ -171,7 +171,7 @@ function observer (data) {
 
 Actions expose the following interface, where optional timeout is in milliseconds, and the handler to be called is set using addActionHandler, see above, where the callback takes a single argument with the input for the action, and returns a promise that resolves to the output from the action.
 
-```json
+```javascript
 class ThingAction {
     thing // the thing this property belongs to
 	name // the name of this property
@@ -181,7 +181,7 @@ class ThingAction {
 
 Events expose the following interface:
 
-```json
+```javascript
 class ThingEvent {
 	thing // the thing this property belongs to
 	name // the name of this event
@@ -487,7 +487,7 @@ The id should uniquely identify each request and is used to match the request to
 
 The server response looks like the following:
 
-```json
+```javascript
 // a successul transaction
 {
     id: 23,
@@ -506,7 +506,7 @@ The status codes are the same as for the HTTP protocol. The description field is
 
 Clients can invoke actions and handle the responses as follows:
 
-```json
+```javascript
 // invoke action'start' with input data 13
 {
     id: 71,
