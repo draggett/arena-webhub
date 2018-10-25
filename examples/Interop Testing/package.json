@@ -1,0 +1,17 @@
+{
+	"name": "webhub-testing",
+	"version": "0.1.0",
+	"description": "Interoperability testing for Web of Things Web Hubs",
+	"main": "interop.js",
+	"scripts": {
+		"start": "node interop.js"
+	},
+	"author": {
+		"name": "Dave Raggett",
+		"email": "dsr@w3.org"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"arena-webhub": "1.0.0"
+	}
+}

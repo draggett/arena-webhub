@@ -2,6 +2,7 @@
 	"name": "arena-webhub",
 	"version": "1.0.0",
 	"description": "Compact Web Hub for the Web of Things",
+	"main": "webhub.js",
 	"homepage": "https://github.com/draggett/arena-webhub",
 	"bugs": "https://github.com/draggett/arena-webhub/issues/",
 	"author": {

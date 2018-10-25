@@ -1,7 +1,7 @@
 // test application for Arena Web Hub
 
 
-let webhub = require('./webhub.js')({
+let webhub = require('arena-webhub')({
 	port: 8888,
 	accountPath: '/account',
 	accountManager: accountManager,
