@@ -4,7 +4,7 @@
 	"description": "Interoperability testing for Web of Things Web Hubs",
 	"main": "interop.js",
 	"scripts": {
-		"start": "node interop.js"
+		"start": "node arena-interop.js"
 	},
 	"author": {
 		"name": "Dave Raggett",
