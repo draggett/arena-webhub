@@ -62,6 +62,8 @@ Applications may use any suitable technologies for accessing IoT devices, e.g. B
 
 Any help with these would be welcomed.
 
+#### Support for additional protocols
+
 * **Peer to peer over WebRTC**
 
 Work is under consideration on enabling peer to peer networks of Web Hubs, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard could be useful as it supports peer to peer data transfer and is supported by Web browsers.
