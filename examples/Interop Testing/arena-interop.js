@@ -1,6 +1,5 @@
 // test application for Arena Web Hub
 
-
 let webhub = require('arena-webhub')({
 	port: 8888,
 	accountPath: '/account',
@@ -63,7 +62,7 @@ function validateJWT (token, url) {
 }
 // expose a test thing for debugging ...
 
-webhub.produce({
+let td = {
 	name: "test",
 	types: {
 		brightness: {
@@ -166,92 +165,106 @@ webhub.produce({
 			type: "string"
 		}
 	}
-}).then(thing => {
-	console.log("produced thing: " + thing.name);
-	
-	// configure actions
-	
-	thing.addActionHandler('testAlarm', input => {
-		let act = (resolve, reject) => {
-			let data = 'whoop whoop!';
+};
+
+try {
+	let thing = webhub.produce(td);
+	try {
+		console.log("produced thing: " + thing.name);
+
+		// configure actions
+
+		thing.addActionHandler('testAlarm', input => {
+			let act = (resolve, reject) => {
+				let data = 'whoop whoop!';
+		
+				if (input)
+					data = input;
 			
-			if (input)
-				data = input;
-				
-			thing.events.alarm.emit(data)
-			resolve(null);
-		}
-		return new Promise(function (resolve, reject) {
-			act(resolve, reject);
-		});
-	});
-	
-	thing.addActionHandler('testSync', input => {
-		let act = (resolve, reject) => {
-			let property = thing.properties[input.name];
-			property.write(input.value);
-			resolve(null);
-		}
-		return new Promise(function (resolve, reject) {
-			act(resolve, reject);
-		});
-	});
-	
-	thing.addActionHandler('testAction', input => {
-		let act = (resolve, reject) => {
-			let action = thing.actions["testInput"];
-			action.invoke(input)
-				.then(output => {
-					resolve(output)
-				}).catch(err => {
-					reject(err);
-				});
-		}
-		return new Promise(function (resolve, reject) {
-			act(resolve, reject);
-		});
-	});
-	
-	thing.addActionHandler('testEmit', input => {
-		let act = (resolve, reject) => {
-			let event = thing.events["alarm"];
-			
-			try {
-				event.emit(input);
-				console.log('emit succeeded');
-				resolve(true);
-			} catch (err) {
-				console.log('emit failed');
-				resolve(false);
-			}
-		}
-		return new Promise(function (resolve, reject) {
-			act(resolve, reject);
-		});
-	});
-	
-	thing.addActionHandler('testSpeed', input => {
-		console.log('test speed with ' + input + ' events');
-		let act = async (resolve, reject) => {
-			try {
-				let count = input;
-				console.log('starting speed test');
-				if (Number.isInteger(count) && count > 0) {
-					while (count--) {
-						await thing.properties['counter'].write(count);
-					}
-				}
-				
+				thing.events.alarm.emit(data)
 				resolve(null);
-			} catch(err) {
-				reject('handler failed: ' + err);
 			}
-		}
-		return new Promise(function (resolve, reject) {
-			act(resolve, reject);
+			return new Promise(function (resolve, reject) {
+				act(resolve, reject);
+			});
 		});
-	});
-})
-.catch(err => console.log("failed to produce thing: " + err));
+
+		thing.addActionHandler('testSync', input => {
+			let act = (resolve, reject) => {
+				let property = thing.properties[input.name];
+				property.write(input.value);
+				resolve(null);
+			}
+			return new Promise(function (resolve, reject) {
+				act(resolve, reject);
+			});
+		});
+
+		thing.addActionHandler('testAction', input => {
+			let act = (resolve, reject) => {
+				let action = thing.actions["testInput"];
+				action.invoke(input)
+					.then(output => {
+						resolve(output)
+					}).catch(err => {
+						reject(err);
+					});
+			}
+			return new Promise(function (resolve, reject) {
+				act(resolve, reject);
+			});
+		});
+
+		thing.addActionHandler('testEmit', input => {
+			let act = (resolve, reject) => {
+				let event = thing.events["alarm"];
+		
+				try {
+					event.emit(input);
+					console.log('emit succeeded');
+					resolve(true);
+				} catch (err) {
+					console.log('emit failed');
+					resolve(false);
+				}
+			}
+			return new Promise(function (resolve, reject) {
+				act(resolve, reject);
+			});
+		});
+
+		thing.addActionHandler('testSpeed', input => {
+			console.log('test speed with ' + input + ' events');
+			let act = async (resolve, reject) => {
+				try {
+					let count = input;
+					console.log('starting speed test');
+					if (Number.isInteger(count) && count > 0) {
+						while (count--) {
+							await thing.properties['counter'].write(count);
+						}
+					}
+			
+					resolve(null);
+				} catch(err) {
+					reject('handler failed: ' + err);
+				}
+			}
+			return new Promise(function (resolve, reject) {
+				act(resolve, reject);
+			});
+		});
+		
+		// make thing available for clients
+		thing.expose();
+		
+		console.log('ready and waiting ...');
+	} catch (err) {
+		console.log('failed to initialise thing');
+	}
+} catch (err) {
+	console.log('failed to produce test thing');
+}
+
 
 

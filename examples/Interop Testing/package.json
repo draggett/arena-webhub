@@ -12,6 +12,6 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"arena-webhub": "1.0.2"
+		"arena-webhub": "1.0.3"
 	}
 }

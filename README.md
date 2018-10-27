@@ -6,13 +6,15 @@ Arena Web Hub is an open source implementation of a Web of Things application hu
 
 ## Installation
 
-The easiest way to install the Arena Web Hub is with npm using the command line:
+You can install the Arena Web Hub is with npm using the command line:
 
 ```
 npm arena-webhub
 ```
 
-If you are interested in contrubuting to further development, including providing example applications and library modules for IoT technologies, you are encouraged to clone the GitHub project at <https://github.com/draggett/arena-webhub>.  If you have a GitHub account, you are also welcome to add to the issue tracker. See below for information on using the Web Hub.
+Alternatively, define a "package.json" file for your application and use "npm install" to install the dependencies including the arena-webhub module. See the examples folder for some examples.
+
+If you are interested in contributing to further development, including providing example applications and library modules for IoT technologies, you are encouraged to clone the GitHub project at <https://github.com/draggett/arena-webhub>.  If you have a GitHub account, you are also welcome to add to the issue tracker. See below for information on using the Web Hub.
 
 Arena has minimal external dependencies and is compact with under 2000 lines of JavaScript. It makes use of the [jshashes node module](https://github.com/h2non/jshashes) for computing the SHA-1 based handshake used for upgrading from HTTPS to WSS. Applications are likely to have dependencies on other modules, e.g. for managing JSON Web Tokens, and for utilising IoT technologies like Bluetooth and ZigBee.
 
@@ -68,6 +70,12 @@ Work is under consideration on enabling peer to peer networks of Web Hubs, where
 
 [QUIC](https://www.chromium.org/quic) is a new transport which reduces latency compared to that of TCP. On the surface, QUIC is very similar to TCP+TLS+HTTP/2 implemented on UDP.
 
+#### Backwards compatible extensions
+
+* Simplified thing API where things look like regular JavaScript objects with getters and setters for properties, and object methods for actions. Attempts to write invalid values throws an exception, and asynchronous errors result in observable events, e.g. loss of connectivity.
+* Things as first class types that can be passed to properties, actions and events. This will involve a new _supply_ method that is passed a thing description and returns a promise. Things are automatically published so there is no need for the expose method.
+* More efficient handling of high speed streams, allowing you to read and write data in blocks rather than having to do so one data point at a time.  The protocols will be able to choose how to best buffer data for maximum performance.
+
 ## Web of Things
 
 The IoT is fragmented by incompatible platforms, and myriad technologies and standards. This creates market friction through raising costs and risks. W3C's Web of Things addresses this by introducing an abstraction layer with things that stand for sensors, actuators and associated information services. 
@@ -102,8 +110,8 @@ The port and account path are optional and default to 8888 and "/account". The a
 
 The Arena Web Hub module exports a single function for applications to expose things for access by clients. Produce is passed a thing description as a JSON object and returns a promise for the exposed thing, for example:
 
-```
-webhub.produce({
+```javascript
+let thing = webhub.produce({
     name: "light12",
     description: "hall light"
     properties: {
@@ -117,11 +125,13 @@ webhub.produce({
     },
     events: {   
     }
-}).then (thing => {
-    // initialise thing's behavior
-}).catch (err => {
-    // handle error
-})
+});
+
+// initialise thing's behavior
+// e.g. declare action handlers
+...
+
+thing.expose();  // expose thing to clients
 ```
 
 ## Integrated Web Server
@@ -140,7 +150,7 @@ This section describes the API exposed by the Arena Web Hub for server-side appl
 
 Each thing exposes the following interface:
 
-```javascript
+```json
 class Thing {
     id // string - a unique id for the thing
     name // string - a human friendly name for the  thing
@@ -154,7 +164,7 @@ class Thing {
 
 Properties expose the following interface:
 
-```javascript
+```json
 class ThingProperty {
     thing // the thing this property belongs to
 	name // the name of this property
@@ -171,7 +181,7 @@ function observer (data) {
 
 Actions expose the following interface, where optional timeout is in milliseconds, and the handler to be called is set using addActionHandler, see above, where the callback takes a single argument with the input for the action, and returns a promise that resolves to the output from the action.
 
-```javascript
+```json
 class ThingAction {
     thing // the thing this property belongs to
 	name // the name of this property
@@ -181,7 +191,7 @@ class ThingAction {
 
 Events expose the following interface:
 
-```javascript
+```json
 class ThingEvent {
 	thing // the thing this property belongs to
 	name // the name of this event
@@ -199,10 +209,10 @@ A common situation is where the hub that is exposing a thing is behind a firewal
 
   * This application needs to get authorisation for the remote access from the external hub which should return the URI for a Web Socket (WSS) connection along with the JASON Web Token (JWT)  for use when establishing that connection.
 
-  * The application can then ask the hub to open and add the connection for the given thing.
+  * The application can then ask the hub to open and add the connection for the given thing. The promise resolves to the new WebSocket connection when it has been established.
 
     ``` javascript
-    thing.addRemoteClient(uri, jwt)  // returns promise for when established
+    thing.addRemoteClient(wss_uri, jwt)  // returns promise for the connection
     ```
 
 * As a hub outside of the firewall that republishes (i.e. proxies) a thing from behind the firewall
@@ -487,7 +497,7 @@ The id should uniquely identify each request and is used to match the request to
 
 The server response looks like the following:
 
-```javascript
+```json
 // a successul transaction
 {
     id: 23,
@@ -506,7 +516,7 @@ The status codes are the same as for the HTTP protocol. The description field is
 
 Clients can invoke actions and handle the responses as follows:
 
-```javascript
+```json
 // invoke action'start' with input data 13
 {
     id: 71,

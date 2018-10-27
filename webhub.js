@@ -373,301 +373,303 @@ function produce(model) {
 		model: model
 	};
 	
-	let init = function (resolve, reject) {
-		try {
-			var name,
-				properties = model.properties,
-				actions = model.actions,
-				events = model.events;
+	let name,
+		properties = model.properties,
+		actions = model.actions,
+		events = model.events;
+		
+	thing.id = model.id;
+	thing.name = model.name;
+	model.platform = "https://example.org/wot/webhub";
+	
+	thing.emitEvent = function (name, json) {
+		if (thing.events.hasOwnProperty(name)) {
+			// note that event: is no longer supported for SSE
+			// so use an object wrapper to convey event name
+			if (json === undefined)
+				json = {"event":name};
+			else
+				json = {"event":name,"data":json};
 				
-			thing.id = model.id;
-			thing.name = model.name;
-			model.platform = "https://example.org/wot/webhub";
-			
-			thing.emitEvent = function (name, json) {
-				if (thing.events.hasOwnProperty(name)) {
-					// note that event: is no longer supported for SSE
-					// so use an object wrapper to convey event name
-					if (json === undefined)
-						json = {"event":name};
-					else
-						json = {"event":name,"data":json};
-						
-					let message = JSON.stringify(json);
-					message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
+			let message = JSON.stringify(json);
+			message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
 
-					let clients = thing.clients;
-				
-					for (let id in clients) {
-						if (clients.hasOwnProperty(id)) {
-							let client = clients[id];
-							client.response.write(message);
-						}
-					}
-					
-					let sockets = thing.sockets;
-					
-					for (let i = 0; i < sockets.length; ++i) {
-						ws_send(sockets[i], JSON.stringify(json));
-					}
-				} else {
-					console.log('unknown event: ' + name + ' on ' + thing.name);
+			let clients = thing.clients;
+		
+			for (let id in clients) {
+				if (clients.hasOwnProperty(id)) {
+					let client = clients[id];
+					client.response.write(message);
 				}
-			};
+			}
 			
-			thing.emitValue = function (name, value) {
-				// note that event: is no longer supported for SSE
-				// so use an object wrapper to convey event name
-				if (thing.properties.hasOwnProperty(name)) {
-					// be safe as stringify throws exception on undefined
-					if (value === undefined)
-						value = {"property":name};
-					else
-						value = {"property":name,"data":value};
-						
-					let message = JSON.stringify(value);
-					message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
-					let clients = thing.clients;
-
-					if (clients !== undefined) {
-						for (var id in clients) {
-							if (clients.hasOwnProperty(id)) {
-								let client = clients[id];
-								client.response.write(message);
-							}
-						}
-					}
-
-					let sockets = thing.sockets;
-					if (sockets !== undefined ) {
-						//console.log('there are ' + sockets.length + ' socket clients');
-						for (let i = 0; i < sockets.length; ++i) {
-							ws_send(sockets[i], JSON.stringify(value));
-						}
-						
-						//console.log('sent data to sockets');
-					}
-				} else {
-					console.log('unknown property: ' + name + ' on ' + thing.name);
-				}
-			};
+			let sockets = thing.sockets;
 			
-			thing.emitState = function (properties) {
-				// note that event: is no longer supported for SSE
-				// so use an object wrapper to convey event name
-				let obj = {};
+			for (let i = 0; i < sockets.length; ++i) {
+				ws_send(sockets[i], JSON.stringify(json));
+			}
+		} else {
+			console.log('unknown event: ' + name + ' on ' + thing.name);
+		}
+	};
+	
+	thing.emitValue = function (name, value) {
+		// note that event: is no longer supported for SSE
+		// so use an object wrapper to convey event name
+		if (thing.properties.hasOwnProperty(name)) {
+			// be safe as stringify throws exception on undefined
+			if (value === undefined)
+				value = {"property":name};
+			else
+				value = {"property":name,"data":value};
 				
-				if (properties === undefined)
-					properties = thing.properties;
-					
-				for (var name in properties) {
-					if (properties.hasOwnProperty(name)) {
-						let value =  properties[name].value;
-						
-						if (value !== undefined)
-							obj[name] = value;
-					}
-				}
-				
-				let json = JSON.stringify({"state":obj});
-				message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
-				let clients = thing.clients;
+			let message = JSON.stringify(value);
+			message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
+			let clients = thing.clients;
 
+			if (clients !== undefined) {
 				for (var id in clients) {
 					if (clients.hasOwnProperty(id)) {
 						let client = clients[id];
 						client.response.write(message);
 					}
 				}
+			}
 
-				let sockets = thing.sockets;
-				
+			let sockets = thing.sockets;
+			if (sockets !== undefined ) {
+				//console.log('there are ' + sockets.length + ' socket clients');
 				for (let i = 0; i < sockets.length; ++i) {
-					ws_send(sockets[i], JSON.stringify(json));
+					ws_send(sockets[i], JSON.stringify(value));
 				}
-			};
-			
-			for (name in properties) {
-				if (properties.hasOwnProperty(name)) {
-					thing.properties[name] = new ThingProperty(thing, name, properties[name]);
-				}
+				
+				//console.log('sent data to sockets');
 			}
-			
-			for (name in actions) {
-				if (actions.hasOwnProperty(name)) {
-					thing.actions[name] = new ThingAction(thing, name, actions[name]);
-				}
-			}
-			
-			for (name in events) {
-				if (events.hasOwnProperty(name)) {
-					thing.events[name] = new ThingEvent(thing, name, events[name]);
-				}
-			}
-						
-			thing.setActionHandler = function (name, handler) {
-				if (thing.actions[name])
-					thing.actions[name].handler = handler;
-			};
-			
-			thing.setWriteHandler = function (name, handler) {
-				if (thing.properties[name])
-					thing.properties[name].handler = handler;
-			};
-			
-			thing.receive = function (socket, message) {
-				// handle incoming web socket message
-				
-				// be safe against zero length messages
-				if (message.length === 0)
-					return;
-					
-				let fail = (id, status, description) => {
-					if (typeof id !== "string")
-						id = "unknown";
-						
-					console.log('fail: ' + id + ' ' + status + ' ' + description);
-					let json = {
-						id: id,
-						status: status
-					};
-					
-					if (description !== undefined)
-						json.description = description;
-						
-					ws_send(socket, JSON.stringify(json));
-				};
-				
-				let succeed = (id, json) => {
-					if (json) {
-						json.id = id;
-						json.status = 200;
-					} else {
-						console.log('succeed with no data to return');
-						json = {
-							id: id,
-							status: 200
-						};
-					}
-
-					ws_send(socket, JSON.stringify(json));
-				};
-				
-				try {
-					let json = JSON.parse(message);
-					
-					if (json.property) {
-						let property = thing.properties[json.property];
-						
-						if (property !== undefined) {
-							try {
-								property.write(json.data);
-								console.log("write succeeded");
-								succeed(json.id);
-							} catch (err) {
-								console.log("couldn't write " + json.data + ' to ' + property.name);
-								fail(json.id, 400, "bad request");
-							}
-						} else {
-							console.log("message with undefined property");
-							fail(json.id, 400, "bad request");
-						}
-					} else if (json.state !== undefined) {
-						let obj = json.state;
-						let properties = thing.properties;
-						
-						for (name in obj) {
-							if (obj.hasOwnProperty(name) && properties.hasOwnProperty(name)) {
-								try {
-									properties[name].write(obj[name]);
-								} catch {
-									console.log("couldn't write " + obj[name] + ' to ' + name);
-									return fail(json.id, 400, "bad request");
-								}
-							}
-						}
-						succeed(json.id);
-					} else if (json.action !== undefined) {
-						let action = thing.actions[json.action];
-						
-						if (action !== undefined) {
-							action.invoke(json.input)
-								.then(output => {
-									console.log('output is ' + JSON.stringify(output));
-									if (output !== undefined)
-										succeed(json.id, {'output':output});
-									else
-										succeed(json.id);
-								}).catch(err => {
-									fail(json.id, 500, "action failed");
-								});
-						} else {
-							fail(json.id, 400, "bad request");
-						}
-					} else {
-						fail(json.id, 400, "bad request");
-					}
-					
-				} catch (err) {
-					console.log('badly formed client message: ' + message);
-					fail(socket, 444, "badly formed client message");
-				}
-			};
-			
-			// used to attach a new web socket
-			thing.addSocket = function(socket) {
-				thing.sockets.push(socket);
-				//.log('addSocket: there are ' + thing.sockets.length + ' sockets');
-				
-				socket.on('close', () => {
-					// drop socket from thing.sockets
-					let sockets = thing.sockets;
-					const index = sockets.indexOf(socket);
-    
-					if (index !== -1) {
-						sockets.splice(index, 1);
-					};
-				});
-				
-				// send state of all properties to sync new client
-				let state = {};
-				let properties = thing.properties;
-				
-				for (let name in properties) {
-					if (properties.hasOwnProperty(name)) {
-						state[name] = properties[name].value;
-					}
-				}
-				
-				ws_send(socket, JSON.stringify({state: state}));
-			};
-			
-			// why isn't this capability on the action itself?
-			thing.addActionHandler = (name, handler) => {
-				if (thing.actions.hasOwnProperty(name))
-					thing.actions[name].handler = handler;
-			};
-			
-			// sent text string to all clients via web sockets
-			
-			thing.send = function (data) {
-				let sockets = thing.sockets;
-				
-				for (let i = 0; i < sockets.length; ++i) {
-					ws_send(sockets[i], data);
-				}
-			};
-			
-			things[model.name] = thing;
-			resolve(thing);
-		} catch (err) {
-			reject(err);
+		} else {
+			console.log('unknown property: ' + name + ' on ' + thing.name);
 		}
 	};
 	
-	return new Promise(function (resolve, reject) {
-        init(resolve, reject);
-    });
+	thing.emitState = function (properties) {
+		// note that event: is no longer supported for SSE
+		// so use an object wrapper to convey event name
+		let obj = {};
+		
+		if (properties === undefined)
+			properties = thing.properties;
+			
+		for (var name in properties) {
+			if (properties.hasOwnProperty(name)) {
+				let value =  properties[name].value;
+				
+				if (value !== undefined)
+					obj[name] = value;
+			}
+		}
+		
+		let json = JSON.stringify({"state":obj});
+		message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
+		let clients = thing.clients;
+
+		for (var id in clients) {
+			if (clients.hasOwnProperty(id)) {
+				let client = clients[id];
+				client.response.write(message);
+			}
+		}
+
+		let sockets = thing.sockets;
+		
+		for (let i = 0; i < sockets.length; ++i) {
+			ws_send(sockets[i], JSON.stringify(json));
+		}
+	};
+	
+	for (name in properties) {
+		if (properties.hasOwnProperty(name)) {
+			thing.properties[name] = new ThingProperty(thing, name, properties[name]);
+		}
+	}
+	
+	for (name in actions) {
+		if (actions.hasOwnProperty(name)) {
+			thing.actions[name] = new ThingAction(thing, name, actions[name]);
+		}
+	}
+	
+	for (name in events) {
+		if (events.hasOwnProperty(name)) {
+			thing.events[name] = new ThingEvent(thing, name, events[name]);
+		}
+	}
+				
+	thing.setActionHandler = function (name, handler) {
+		if (thing.actions[name])
+			thing.actions[name].handler = handler;
+	};
+	
+	thing.setWriteHandler = function (name, handler) {
+		if (thing.properties[name])
+			thing.properties[name].handler = handler;
+	};
+	
+	thing.receive = function (socket, message) {
+		// handle incoming web socket message
+		
+		// be safe against zero length messages
+		if (message.length === 0)
+			return;
+			
+		let fail = (id, status, description) => {
+			if (typeof id !== "string")
+				id = "unknown";
+				
+			console.log('fail: ' + id + ' ' + status + ' ' + description);
+			let json = {
+				id: id,
+				status: status
+			};
+			
+			if (description !== undefined)
+				json.description = description;
+				
+			ws_send(socket, JSON.stringify(json));
+		};
+		
+		let succeed = (id, json) => {
+			if (json) {
+				json.id = id;
+				json.status = 200;
+			} else {
+				console.log('succeed with no data to return');
+				json = {
+					id: id,
+					status: 200
+				};
+			}
+
+			ws_send(socket, JSON.stringify(json));
+		};
+		
+		try {
+			let json = JSON.parse(message);
+			
+			if (json.property) {
+				let property = thing.properties[json.property];
+				
+				if (property !== undefined) {
+					try {
+						property.write(json.data);
+						console.log("write succeeded");
+						succeed(json.id);
+					} catch (err) {
+						console.log("couldn't write " + json.data + ' to ' + property.name);
+						fail(json.id, 400, "bad request");
+					}
+				} else {
+					console.log("message with undefined property");
+					fail(json.id, 400, "bad request");
+				}
+			} else if (json.state !== undefined) {
+				let obj = json.state;
+				let properties = thing.properties;
+				
+				for (name in obj) {
+					if (obj.hasOwnProperty(name) && properties.hasOwnProperty(name)) {
+						try {
+							properties[name].write(obj[name]);
+						} catch {
+							console.log("couldn't write " + obj[name] + ' to ' + name);
+							return fail(json.id, 400, "bad request");
+						}
+					}
+				}
+				succeed(json.id);
+			} else if (json.action !== undefined) {
+				let action = thing.actions[json.action];
+				
+				if (action !== undefined) {
+					action.invoke(json.input)
+						.then(output => {
+							console.log('output is ' + JSON.stringify(output));
+							if (output !== undefined)
+								succeed(json.id, {'output':output});
+							else
+								succeed(json.id);
+						}).catch(err => {
+							fail(json.id, 500, "action failed");
+						});
+				} else {
+					fail(json.id, 400, "bad request");
+				}
+			} else {
+				fail(json.id, 400, "bad request");
+			}
+			
+		} catch (err) {
+			console.log('badly formed client message: ' + message);
+			fail(socket, 444, "badly formed client message");
+		}
+	};
+	
+	// used to attach a new web socket
+	thing.addSocket = function(socket) {
+		thing.sockets.push(socket);
+		//.log('addSocket: there are ' + thing.sockets.length + ' sockets');
+		
+		socket.on('close', () => {
+			// drop socket from thing.sockets
+			let sockets = thing.sockets;
+			const index = sockets.indexOf(socket);
+
+			if (index !== -1) {
+				sockets.splice(index, 1);
+			};
+		});
+		
+		// send state of all properties to sync new client
+		let state = {};
+		let properties = thing.properties;
+		
+		for (let name in properties) {
+			if (properties.hasOwnProperty(name)) {
+				state[name] = properties[name].value;
+			}
+		}
+		
+		ws_send(socket, JSON.stringify({state: state}));
+	};
+	
+	// why isn't this capability on the action itself?
+	thing.addActionHandler = (name, handler) => {
+		if (thing.actions.hasOwnProperty(name))
+			thing.actions[name].handler = handler;
+	};
+	
+	// sent text string to all clients via web sockets
+	
+	thing.send = function (data) {
+		let sockets = thing.sockets;
+		
+		for (let i = 0; i < sockets.length; ++i) {
+			ws_send(sockets[i], data);
+		}
+	};
+	
+	thing.expose = function () {
+		let publish = (resolve, reject) => {
+			things[thing.model.name] = thing;
+			resolve(model);
+		}
+		
+		return new Promise(function (resolve, reject) {
+			publish(resolve, reject);
+		});
+	};
+	
+	//things[model.name] = thing;
+	
+	return thing;
 }
 
 // see http://cjihrig.com/blog/the-server-side-of-server-sent-events/
