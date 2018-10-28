@@ -380,7 +380,7 @@ function produce(model) {
 		
 	thing.id = model.id;
 	thing.name = model.name;
-	model.platform = "https://example.org/wot/webhub";
+	model.platform = "https://github.com/draggett/arena-webhub";
 	
 	thing.emitEvent = function (name, json) {
 		if (thing.events.hasOwnProperty(name)) {

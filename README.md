@@ -77,7 +77,7 @@ The IoT is fragmented by incompatible platforms, and myriad technologies and sta
 
 * Server applications expose things, hiding the details of the IoT technologies and standards
 * Client applications interact with things as software objects with properties, actions and events
-* Things are identified with URLs that can be dereferenced to download human readable descriptions as HTML, or machine interpretable descriptions as JSON-LD
+* Things are identified with URLs that can be dereferenced to download machine interpretable descriptions as JSON-LD and optionally as documentation in HTML
 * RDF and Linked Data can be used for rich descriptions of the kinds of things, their capabilities, interrelationships, and the context in which they reside. As an example, a smart home could be described in terms of the different kinds of smart lights in each room.
 
 ![WebHubs](webhubs.png)
@@ -113,7 +113,7 @@ let webhub = require('arena-webhub')({
 
 The port and account path are optional and default to 8888 and "/account". The accountManager and validateJWT are required application callbacks. The accountManager callback is passed two arguments for the HTTPS request and response (see the HTTPS node module), and is responsible for handling the request and the associated response. The validateJWT callback is passed two arguments for the JSON Web Token and the URL path for the connection. The return value is true if the token is currently valid for this path, or false if it isn't.
 
-The Arena Web Hub module exports a single function for applications to expose things for access by clients. Produce is passed a thing description as a JSON object and returns a promise for the exposed thing, for example:
+The Arena Web Hub module exports a single function for applications to expose things for access by clients. The _produce_ method is passed a thing description as a JSON object and returns a promise for the exposed thing, for example:
 
 ```javascript
 let thing = webhub.produce({
@@ -141,13 +141,13 @@ thing.expose();  // expose thing to clients
 
 ## Integrated Web Server
 
-Web applications for access from Web browsers involve a set of  Web page resources. The Arena Web Hub looks for these in the "./www" folder. The integrated Web server will serve up "./www/index.html" for URL GET requests with the path "/".  Applications are responsible for managing Web resources  for the Web server. This includes web page scripts and their use of cookies.
+Web applications for access from Web browsers involve a set of  Web page resources. The Arena Web Hub looks for these in the "./www" folder. The integrated Web server will serve up the file at "./www/index.html" for URL GET requests with the path "/".  Applications are responsible for managing Web resources  for the Web server. This includes web page scripts and their use of cookies.
 
 ## Thing Descriptions
 
 The object interface for things is described using JSON-LD with a default context. Arena Web Hub follows the W3C Thing Description specification, see: https://www.w3.org/TR/wot-thing-description/
 
-Note that the specification is still evolving, and the Arena Web Hub may not be fully compliant to the latest version of the [editor's draft specification](https://w3c.github.io/wot-thing-description/). An example is that Arena doesn't currently support protocol binding templates using "forms". This is because protocol binding templates aren't yet capable of a complete description of Arena's use of Server-Sent Events and WebSockets.
+Note that the specification is still evolving, and the Arena Web Hub may not be fully compliant to the latest version of the [editor's draft specification](https://w3c.github.io/wot-thing-description/). An example is that Arena doesn't currently support protocol binding templates using "forms". This is because protocol binding templates aren't yet capable of a complete description of Arena's use of HTTPS, Server-Sent Events and WebSockets.
 
 ## Thing API
 
@@ -224,15 +224,13 @@ A common situation is where the hub that is exposing a thing is behind a firewal
 
   * The application on this hub needs to authorise the proxying of things from behind the firewall using the URL space it reserved when configuring the hub.
 
-  * The application on this hub needs to authorise access for things from behind the firewall using the URL space it reserved when configuring the hub.
-
     ```javascript
     thing.proxy(jwt);  // republish the thing that connects using this token
     ```
 
 * As a hub outside of the firewall that acts as the sole client for a thing exposed behind the firewall, for example, where a device vendor seeks to monitor the operation of a device in order to provide predictive maintenance.
 
-  * The application needs to designate the JSON Web Token that will be used by the remote hub that owns the thing
+  * The application on this hub needs to designate the JSON Web Token that will be used by the remote hub that owns the thing
 
     ```javascript
     thing.setOwner(jwt); // provide access to the thing that uses this token
