@@ -157,10 +157,10 @@ Each thing exposes the following interface:
 
 ```javascript
 class Thing {
-    id // string - a unique id for the thing
+	id // string - a unique id for the thing
     name // string - a human friendly name for the  thing
-    model // JSON object for the thing description
-    properties // object - a map from name to property
+	model // JSON object for the thing description
+	properties // object - a map from name to property
 	actions // object - a map from name to action
 	events // object - a map from name to event
 	addActionHandler(name, callback) // set callback for named action
@@ -171,16 +171,16 @@ Properties expose the following interface:
 
 ```javascript
 class ThingProperty {
-    thing // the thing this property belongs to
+	thing // the thing this property belongs to
 	name // the name of this property
-    value // the current value of this property
+	value // the current value of this property
 	write(value) // to update the current value and notify clients
-    subscribe(observer) // add observer to list of observers
-    unsubscribe(observer) // remove observer from list of observers
+	subscribe(observer) // add observer to list of observers
+	unsubscribe(observer) // remove observer from list of observers
 }
 
 function observer (data) {
-    // notification of updated value for property
+	// notification of updated value for property
 }
 ```
 
@@ -201,8 +201,8 @@ class ThingEvent {
 	thing // the thing this property belongs to
 	name // the name of this event
 	emit(data) // to notify clients of this event with given data
-    subscribe(observer) // add observer to list of observers
-    unsubscribe(observer) // remove observer from list of observers
+	subscribe(observer) // add observer to list of observers
+	unsubscribe(observer) // remove observer from list of observers
 }
 ```
 
@@ -224,9 +224,9 @@ A common situation is where the hub that is exposing a thing is behind a firewal
 
   * The application on this hub needs to authorise the proxying of things from behind the firewall using the URL space it reserved when configuring the hub.
 
-    ```javascript
-    thing.proxy(jwt);  // republish the thing that connects using this token
-    ```
+  	```javascript
+  	thing.proxy(jwt);  // republish the thing that connects using this token
+  	```
 
 * As a hub outside of the firewall that acts as the sole client for a thing exposed behind the firewall, for example, where a device vendor seeks to monitor the operation of a device in order to provide predictive maintenance.
 
@@ -389,7 +389,7 @@ eventSource.onmessage = function(e) {
         let propertyName = data.property;
         let propertyValue = data.data;
 	} else if (data.state) {
-        // data.state is an object mapping property names to values
+		// data.state is an object mapping property names to values
 	}
 }
 ```
@@ -455,18 +455,18 @@ ws.onmessage = function(message) {
 		if (data.event) {
 			let eventName = data.event;
 			let eventValue = data.data;
-            // do something with event
+			// do something with event
 		} else if (data.property) {
-        	let propertyName = data.property;
-        	let propertyValue = data.data;
-            // do something with property update
+			let propertyName = data.property;
+			let propertyValue = data.data;
+			// do something with property update
 		} else if (data.state) {
-        	// data.state is an object mapping property names to values
+			// data.state is an object mapping property names to values
         } else if (data.status) {
-            // a response to a client request
-            let id = data.id;  // identifies client request
-            let status = data.status; // same codes as for HTTP
-            // match response to request and do something 
+			// a response to a client request
+			let id = data.id;  // identifies client request
+			let status = data.status; // same codes as for HTTP
+			// match response to request and do something 
         }
         
 	} catch (err) {
@@ -480,18 +480,18 @@ Clients can push property updates individually or together:
 ```javascript
 let message = {
 	id: 23,
-    property: "brightness",
-    data: 42
+	property: "brightness",
+	data: 42
 };
 ws.send(JSON.stringify(message));
 
 message = {
 	id: 24,
-    state: {
-        property1: value1,
-        property2: value2,
-        ...
-    }
+	state: {
+		property1: value1,
+		property2: value2,
+		...
+	}
 };
 ws.send(JSON.stringify(message));
 ```
@@ -503,15 +503,15 @@ The server response looks like the following:
 ```javascript
 // a successul transaction
 {
-    id: 23,
-    status: 200
+	id: 23,
+	status: 200
 }
 
 // a failed transaction (invalid data)
 {
-    id: 23,
-    status: 400
-    description: "invalid data"
+	id: 23,
+	status: 400
+	description: "invalid data"
 }
 ```
 
@@ -522,23 +522,23 @@ Clients can invoke actions and handle the responses as follows:
 ```javascript
 // invoke action'start' with input data 13
 {
-    id: 71,
-    action: "start",
-    input: 13
+	id: 71,
+	action: "start",
+	input: 13
 }
 
 // a successful action response with output true looks like
 {
-    id: 71,
-    status: 200,
-    output: true
+	id: 71,
+	status: 200,
+	output: true
 }
 
 // a failed action looks like
 {
-    id: 71,
-    status: 500,
-    description: "server error"
+	id: 71,
+	status: 500,
+	description: "server error"
 }
 ```
 
