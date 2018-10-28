@@ -12,7 +12,7 @@ You can install the Arena Web Hub is with npm using the command line:
 npm arena-webhub
 ```
 
-Alternatively, define a "package.json" file for your application and use "npm install" to install the dependencies including the arena-webhub module. See the examples folder for some examples.
+Alternatively, define a "[package.json](https://docs.npmjs.com/getting-started/using-a-package.json)" file for your application and use "npm install" to install the dependencies including the arena-webhub module. See the examples folder for some examples.
 
 If you are interested in contributing to further development, including providing example applications and library modules for IoT technologies, you are encouraged to clone the GitHub project at <https://github.com/draggett/arena-webhub>.  If you have a GitHub account, you are also welcome to add to the issue tracker. See below for information on using the Web Hub.
 
@@ -62,21 +62,11 @@ Applications may use any suitable technologies for accessing IoT devices, e.g. B
 
 Any help with these would be welcomed.
 
-#### Support for additional protocols
+* **Simplified thing API** where things look like regular JavaScript objects with getters and setters for properties, and object methods for actions. Attempts to write invalid values throws an exception, and asynchronous errors result in observable events, e.g. loss of connectivity. The simplified API will be implemented on top of the existing API.
 
-* **Peer to peer over WebRTC**
-
-Work is under consideration on enabling peer to peer networks of Web Hubs, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard could be useful as it supports peer to peer data transfer and is supported by Web browsers.
-
-* **QUIC protocol support**
-
-[QUIC](https://www.chromium.org/quic) is a new transport which reduces latency compared to that of TCP. On the surface, QUIC is very similar to TCP+TLS+HTTP/2 implemented on UDP.
-
-#### Backwards compatible extensions
-
-* Simplified thing API where things look like regular JavaScript objects with getters and setters for properties, and object methods for actions. Attempts to write invalid values throws an exception, and asynchronous errors result in observable events, e.g. loss of connectivity.
-* Things as first class types that can be passed to properties, actions and events. This will involve a new _supply_ method that is passed a thing description and returns a promise. Things are automatically published so there is no need for the expose method.
-* More efficient handling of high speed streams, allowing you to read and write data in blocks rather than having to do so one data point at a time.  The protocols will be able to choose how to best buffer data for maximum performance.
+* **Things as first class types** that can be passed to properties, actions and events. This will involve a new _supply_ method that is passed a thing description and returns a promise. Things are automatically published so there is no need for the expose method.
+* **More efficient handling of high speed streams**, allowing you to read and write data in blocks rather than having to do so one data point at a time.  The protocols will be able to choose how to best buffer data for maximum performance.
+* **Peer to peer to peer networks of Web Hubs**, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard is designed for peer to peer data transfer and is supported by Web browsers.
 
 ## Web of Things
 
@@ -87,7 +77,7 @@ The IoT is fragmented by incompatible platforms, and myriad technologies and sta
 * Things are identified with URLs that can be dereferenced to download human readable descriptions as HTML, or machine interpretable descriptions as JSON-LD
 * RDF and Linked Data can be used for rich descriptions of the kinds of things, their capabilities, interrelationships, and the context in which they reside. As an example, a smart home could be described in terms of the different kinds of smart lights in each room.
 
-![WebHubs](www/webhubs.png)
+![WebHubs](webhubs.png)
 
 Web Hubs are an important new class of Web application platforms that enable open markets of services where suppliers and consumers of services are connected via the Web of Things using Web protocols for easy integration with Web browsers and other Web Hubs.
 
@@ -152,7 +142,7 @@ This section describes the API exposed by the Arena Web Hub for server-side appl
 
 Each thing exposes the following interface:
 
-```json
+```javascript
 class Thing {
     id // string - a unique id for the thing
     name // string - a human friendly name for the  thing
@@ -166,7 +156,7 @@ class Thing {
 
 Properties expose the following interface:
 
-```json
+```javascript
 class ThingProperty {
     thing // the thing this property belongs to
 	name // the name of this property
@@ -183,7 +173,7 @@ function observer (data) {
 
 Actions expose the following interface, where optional timeout is in milliseconds, and the handler to be called is set using addActionHandler, see above, where the callback takes a single argument with the input for the action, and returns a promise that resolves to the output from the action.
 
-```json
+```javascript
 class ThingAction {
     thing // the thing this property belongs to
 	name // the name of this property
@@ -499,7 +489,7 @@ The id should uniquely identify each request and is used to match the request to
 
 The server response looks like the following:
 
-```json
+```javascript
 // a successul transaction
 {
     id: 23,
@@ -518,7 +508,7 @@ The status codes are the same as for the HTTP protocol. The description field is
 
 Clients can invoke actions and handle the responses as follows:
 
-```json
+```javascript
 // invoke action'start' with input data 13
 {
     id: 71,
