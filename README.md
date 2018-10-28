@@ -67,6 +67,9 @@ Any help with these would be welcomed.
 * **Things as first class types** that can be passed to properties, actions and events. This will involve a new _supply_ method that is passed a thing description and returns a promise. Things are automatically published so there is no need for the expose method.
 * **More efficient handling of high speed streams**, allowing you to read and write data in blocks rather than having to do so one data point at a time.  The protocols will be able to choose how to best buffer data for maximum performance.
 * **Peer to peer to peer networks of Web Hubs**, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard is designed for peer to peer data transfer and is supported by Web browsers.
+* **Enlarged set of example applications** for different domains, IoT technologies and standards. 
+
+Note that the examples include a client-side Web of Things library (see "[client/wot.js](client/wot.js)") with an adaptation layer for different Web of Things platforms.
 
 ## Web of Things
 
@@ -80,6 +83,16 @@ The IoT is fragmented by incompatible platforms, and myriad technologies and sta
 ![WebHubs](webhubs.png)
 
 Web Hubs are an important new class of Web application platforms that enable open markets of services where suppliers and consumers of services are connected via the Web of Things using Web protocols for easy integration with Web browsers and other Web Hubs.
+
+Web of Things platforms vary in which protocols they support and exactly how they use them. Server platforms inject communications metadata into thing descriptions for the things they expose  as a basis for client platforms to identify how to interoperate with them. 
+
+Arena identifies itself to clients in thing descriptions with the following metadata declaration:
+
+```
+"platform": "https://github.com/draggett/arena-webhub"
+```
+
+## 
 
 ## Usage
 
@@ -183,7 +196,7 @@ class ThingAction {
 
 Events expose the following interface:
 
-```json
+```javascript
 class ThingEvent {
 	thing // the thing this property belongs to
 	name // the name of this event
