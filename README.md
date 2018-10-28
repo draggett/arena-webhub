@@ -158,7 +158,7 @@ Each thing exposes the following interface:
 ```javascript
 class Thing {
 	id // string - a unique id for the thing
-    name // string - a human friendly name for the  thing
+	name // string - a human friendly name for the  thing
 	model // JSON object for the thing description
 	properties // object - a map from name to property
 	actions // object - a map from name to action
@@ -179,6 +179,7 @@ class ThingProperty {
 	unsubscribe(observer) // remove observer from list of observers
 }
 
+// an example handler for a property observer
 function observer (data) {
 	// notification of updated value for property
 }
@@ -188,7 +189,7 @@ Actions expose the following interface, where optional timeout is in millisecond
 
 ```javascript
 class ThingAction {
-    thing // the thing this property belongs to
+	thing // the thing this property belongs to
 	name // the name of this property
 	invoke(input [,timeout]) // invoke with input, returns promise for the output
 }
@@ -203,6 +204,11 @@ class ThingEvent {
 	emit(data) // to notify clients of this event with given data
 	subscribe(observer) // add observer to list of observers
 	unsubscribe(observer) // remove observer from list of observers
+}
+
+// an example handler for an event observer
+function observer (data) {
+	// notification of updated value for property
 }
 ```
 
