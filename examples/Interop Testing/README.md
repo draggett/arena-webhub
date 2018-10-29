@@ -1,16 +1,17 @@
 # High-level interoperability testing for the Web of Things
 
 <div style="background-color:#EEE;padding:0.5em;height:6em">
-<img style="height:5em;float:left" src="www/f-interop.png"> Acknowledgement: This work was done as part of the F-Interop project which was supported by the European Union’s Horizon 2020 programme under Grant Agreement number: 687884
+    <img style="height:5em;float:left" src="www/f-interop.png"> Acknowledgement: This work was done as part of the <a href="https://www.f-interop.eu">F-Interop project</a> which was supported by the European Union’s Horizon 2020 programme under Grant Agreement number: 687884
 </div>
 
-This example provides a tool for high-level interoperability testing for the Web of Things.  This has been used for testing Arena Web Hub, Siemens' Eclipse ThingWeb and Mozilla's IoT Things Gateway.
+
+This example provides a tool for high-level interoperability testing for the Web of Things.  This has been used for testing Arena Web Hub, Siemens' Eclipse ThingWeb and Mozilla's IoT Things Gateway. The testing tool was co-developed with the Arena Web Hub as part of a test-driven development process.
 
 <img style="width:100%" src="www/test-arch.png">
 
 The test agent assumes a server platform that exposes a thing, and a client platform that consumes a thing. A special test thing is used to support the suite of tests, along with the corresponding server and client test applications.
 
-The test agent is implemented as a web page script along with a client library for the Web of Things that provides a server platform neutral API with adaptors for common platforms for how they use the underlying protocols. The test agent is designed to implement:
+The test agent is implemented as a web page script ([www/interop.js](www/interop.js)) along with a client library for the Web of Things ([www/wot.js](www/wot.js)) that provides a server platform neutral API with adaptors for common platforms for how they use the underlying protocols. The test agent is designed to implement:
 
 * Client-side functional tests
 * Server-side functional tests
@@ -46,7 +47,8 @@ _And similarly for actions and events …_
 
 * The simplest case is when testing the Arena Web Hub platform. You just need to open
 	a console and change to the folder containing the test framework ("examples/Interop Testing") and run the command “npm start”. This automatically launches the Web server. You can then
-	open the web page at https://localhost:888/interop.html. Note "nam-start" runs the Web Hub on the application defined by "arena-webhub.js" and is equivalent to running "node arena-webhub.js" 
+	open the web page at https://localhost:888/interop.html. Note "npm-start" runs the Web Hub on the application defined by "[arena-webhub.js](arena-webhub.js)" and is equivalent to running "node arena-webhub.js" 
 
-- To test the Siemens ThingWeb platform, you need a second console to launch ThingWeb and get it to execute the test applications with the command “wot-servient thing-web-interop.js” 
-- The Mozilla Things Gateway is more complicated. After installing it from the Mozilla site, you need to create a user account and install a test add-on. Once that is done, you can then log into the Things Gateway, enable the test add-on and activate the test thing. 
+- To test the Siemens ThingWeb platform, you need a second console to launch ThingWeb and get it to execute the test applications with the command “wot-servient thing-web-interop.js”, see [thing-web-interop.js](thing-web-interop.js), which is very similar to  "arena-webhub.js", differing in only a few contextual details.
+- The Mozilla Things Gateway is more complicated. After installing it from the Mozilla site, you need to create a user account and install a test add-on. Once that is done, you can then log into the Things Gateway, enable the test add-on and activate the test thing. _The addon code will be uploaded soon_.
+
