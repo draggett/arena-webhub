@@ -1,0 +1,17 @@
+{
+	"name": "webhub-getting-started",
+	"version": "0.1.0",
+	"description": "Simple example for the Arena Web Hub",
+	"main": "light.js",
+	"scripts": {
+		"start": "node light.js"
+	},
+	"author": {
+		"name": "Dave Raggett",
+		"email": "dsr@w3.org"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"arena-webhub": "1.0.3"
+	}
+}

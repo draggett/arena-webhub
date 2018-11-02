@@ -127,6 +127,11 @@ class ThingAction {
 	// invoke action with data, returning a promise
 	// optional timeout in milliseconds
 	invoke(input, timeout) {
+	    if (timeout === undefined)
+    		timeout = Number.MAX_SAFE_INTEGER;
+    		
+    	console.log('invoking ' + this.name + ' with timeout ' + timeout);
+
 		return this.thing.platform.invoke(this.thing, this.name, input, timeout);
 	}
 }
@@ -548,6 +553,7 @@ class ArenaWebHubSSE extends ArenaWebHub {
     		data = null;
     		
     	var act = function (resolve, reject) {
+    		console.log('timeout is ' + timeout);
     		const uri = thing.uri + "/actions/" + name;
     		let timer = setTimeout(function () {
     			reject('timeout on action ' + name);
@@ -563,6 +569,7 @@ class ArenaWebHubSSE extends ArenaWebHub {
 			};
 			
          	fetch(uri, opts).then(response => {
+         		console.log('got response');
          		clearTimeout(timer);
         		if (response.ok) {
         			if (response.status == 204)

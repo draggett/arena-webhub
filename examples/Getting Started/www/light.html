@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Light bulb example</title>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="wot.js"></script>
+<script type="text/javascript" src="light.js"></script>
+<style>
+body {
+	padding: 2em;
+	font-family: sans-serif;
+	background: white;
+}
+h1 {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+#bulb {
+	float: left;
+	position: relative;
+}
+#on {
+	width: 300px;
+	z-index: 50;
+	opacity: 0;
+}
+#off {
+	position: absolute;
+	left: 0;
+	width: 300px;
+	z-index: 100;
+	opacity: 1;
+}
+#control {
+	clear: both;
+}
+</style>
+</head>
+<body>
+<h1>Light bulb example</h1>
+
+<p id="bulb"><img id="on" src="bulb-on.png" alt="on"><img id="off" src="bulb-off.png" alt="off"></p>
+
+<p id="control">
+<label>Transition? <input id="transition" type="checkbox"></label>
+<label>Brightness level <input id="range" type="range" min="0" max="100" value="100" step="2"></label></p>
+
+<h2>Thing Description</h2>
+
+<pre id="model"></pre>
+
+</body>
+</html>
