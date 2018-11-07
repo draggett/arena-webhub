@@ -1,6 +1,6 @@
 # Getting started with the Web of Things
 
-This is an introductory example to help familiarise you with the Web of Things. The starting point is a thing that exposes a couple of properties, an action and an event. The use case is a dimmable light which can be smoothly transitioned from one brightness level to another.
+This is an introductory example to help familiarise you with the Web of Things. The starting point is a thing that exposes a property and an action. The use case is a dimmable light which can be smoothly transitioned from one brightness level to another.  The HTML page allows you to switch between imediately applying the new level or smoothly transitioning to it.
 
 * A numeric property with upper and lower bounds representing the brightness
 * A action that slowly changes to a new brightness over a given time duration
