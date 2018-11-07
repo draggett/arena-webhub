@@ -9,10 +9,12 @@
 <style>
 body {
 	padding: 2em;
+	padding-top: 1em;
+	padding-right: 1em;
 	font-family: sans-serif;
 	background: white;
 }
-h1 {
+h1,h2 {
 	margin-top: 0;
 	margin-bottom: 0;
 }
@@ -35,20 +37,49 @@ h1 {
 #control {
 	clear: both;
 }
+div.wrapper {
+	display: flex;
+	flex-wrap: wrap;
+}
+div.demo {
+	flex: 1 1 350px;
+}
+div.model {
+	flex: 1 1 350px;
+	min-width: 350px;
+	padding-left: 1em;
+	background-color: rgb(240,240,255);
+}
+.description {
+	color: grey;
+	font-style: italic;
+}
+pre {
+	white-space: pre-wrap;
+}
+html {
+	background-color: navy;
+}
 </style>
 </head>
 <body>
+<div class="wrapper">
+<div class="demo">
 <h1>Light bulb example</h1>
-
 <p id="bulb"><img id="on" src="bulb-on.png" alt="on"><img id="off" src="bulb-off.png" alt="off"></p>
 
 <p id="control">
 <label>Transition? <input id="transition" type="checkbox"></label>
 <label>Brightness level <input id="range" type="range" min="0" max="100" value="100" step="2"></label></p>
 
-<h2>Thing Description</h2>
+<p class="description">Move slider to change brightness. Enable "transition" for a smooth transition.</p>
+</div>
+
+<div class="model">
+<h1>Thing Description</h1>
 
 <pre id="model"></pre>
-
+</div>
+</div>
 </body>
 </html>

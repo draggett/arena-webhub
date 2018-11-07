@@ -13,11 +13,6 @@ let td = {
     "name": "light",
     "description": "a dimmable light with smooth transitions",
     "properties": {
-        "power": {
-            "type": "boolean",
-            "value": true,
-            "description": "power on or off"
-        },
         "brightness": {
             "type": "number",
             "minimum": 0,
@@ -32,8 +27,8 @@ let td = {
                 "target": {
                     "type": "number",
                     "minimum": 0,
-                    "maximum": 1.0,
-                    "description": "target brightness in range 0 to 1"
+                    "maximum": 100,
+                    "description": "target brightness in range 0 to 100"
                 },
                 "duration": {
                     "type": "integer",
@@ -42,12 +37,6 @@ let td = {
                 }
             },
             "description": "smooth transition from current brightness level to target brightness level"
-        }
-    },
-    "events": {
-        "alarm": {
-            "type": "string",
-            "description": "an alarm with a description"
         }
     }
 };

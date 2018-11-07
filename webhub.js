@@ -394,6 +394,7 @@ function produce(model) {
 			let message = JSON.stringify(json);
 			message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
 
+			// clients for server-sent event stream
 			let clients = thing.clients;
 		
 			for (let id in clients) {
@@ -468,6 +469,8 @@ function produce(model) {
 		}
 		
 		let json = JSON.stringify({"state":obj});
+		
+		// for server-sent event stream
 		message = "data: "+ message.replace(/\n/g, '\ndata: ') + "\n\n";
 		let clients = thing.clients;
 
@@ -825,8 +828,8 @@ function process_get(request, response, uri) {
 					
 				body = JSON.stringify(property.value, null, 4);
 			} else if (path === "/events") {
-				// add to thing's set of event streams
-				console.log("new event stream for thing: " + thing.name);
+				// add to thing's set of server-sent event streams
+				console.log("new server-sent event stream for thing: " + thing.name);
 				
 				response.writeHead(200, {
 					'Content-Type': 'text/event-stream',
@@ -848,6 +851,9 @@ function process_get(request, response, uri) {
 					id: id,
 					response: response
 				};
+				
+				// tidy up when connection is closed
+				// e.g. after a browser tab is hidden
 
 				response.on("close", function () {
 					console.log('lost client id = ' + id);

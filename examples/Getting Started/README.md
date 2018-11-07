@@ -2,10 +2,8 @@
 
 This is an introductory example to help familiarise you with the Web of Things. The starting point is a thing that exposes a couple of properties, an action and an event. The use case is a dimmable light which can be smoothly transitioned from one brightness level to another.
 
-* A boolean property that can be set to true or false
-* A numeric property with upper and lower bounds
-* A action that triggers some behaviour over a given time duration
-* A event that signals an alarm with a string based description
+* A numeric property with upper and lower bounds representing the brightness
+* A action that slowly changes to a new brightness over a given time duration
 
 The thing description is declared in JSON as follows:
 
@@ -14,17 +12,12 @@ The thing description is declared in JSON as follows:
     "name": "simple_thing",
     "description": "a dimmable light with smooth transitions",
     "properties": {
-        "power": {
-            "type": "boolean",
-            "value": true,
-            "description": "power on or off"
-        },
         "brightness": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1.0,
-            "value": 0.5,
-            "description": "brightness in range 0 to 1"
+            "maximum": 100,
+            "value": 100,
+            "description": "brightness in range 0 to 100"
         }
     },
     "actions": {
@@ -33,8 +26,8 @@ The thing description is declared in JSON as follows:
                 "target": {
                     "type": "number",
                     "minimum": 0,
-                    "maximum": 1.0,
-                    "description": "target brightness in range 0 to 1"
+                    "maximum": 100,
+                    "description": "target brightness in range 0 to 100"
                 },
                 "duration": {
                     "type": "integer",
@@ -44,19 +37,13 @@ The thing description is declared in JSON as follows:
             },
             "description": "smooth transition from current brightness level to target brightness level"
         }
-    },
-    "events": {
-        "alarm": {
-            "type": "string",
-            "description": "an alarm with a description"
-        }
     }
 }
 ```
 
-Note that "value" defines the initial value for a property.  This is optional as the value could be set by the application code, e.g. based upon an initial sensor reading. The "type" declares the data type which can be one of "boolean", "number", "integer", "string", "array" and "object". The "description" is optional, but helps to document the developer's intention.  "minimum" and "maximum" are examples of constraints on the permitted values.
+Note that "value" defines the initial value for a property.  This is optional as the value could be set by the application code, e.g. based upon an initial sensor reading. The "type" declares the data type which can be one of "boolean", "number", "integer", "string", "array" and "object". The "description" is optional, but helps to document the developer's intention.  "minimum" and "maximum" are examples of constraints on the permitted values for numbers and integers.
 
-This example thing description omits the JSON-LD context that maps identifiers to RDF URIs, and likewise omits semantic annotations that describe the kind of thing, in this case a dimmable light. JSON-LD provides a flexible framework for metadata, for instance, allowing you to state the room the light is in.
+JSON-LD defines a mapping from JSON to RDF/Linked Data. There is a default context that provides maps the most common identifiers to RDF URIs, but you will need to supply additional contexts if you want to include semantic annotations that describe the kind of thing, in this case a dimmable light.  JSON-LD provides a flexible framework for metadata, for instance, allowing you to state the room the light is in.
 
 For more information see the [W3C Editor's Draft for Thing Descriptions and the [W3C Editor's Draft for the Scripting API](https://w3c.github.io/wot-scripting-api/).
 

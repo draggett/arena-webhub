@@ -10,7 +10,6 @@ class Thing {
 		this.name = model.name;
 		this.model = model;
 		this.uri = uri;
-		this.platform = wot.platform;  // *** temporary hack ***
 		this.pending = {};
 		this.properties = {};
 
@@ -39,10 +38,22 @@ class Thing {
 			}
 		}
 		
+		this.platform = wot.discoverPlatform(this);
 		let thing = this;
 		this.unsubscribe = () => {
 			thing.platform.unsubscribe(thing);
 		};
+		
+		// watch for when browser tab becomes visible so
+		// that connections can be re-openeded as needed
+		if (document && document.hidden !== undefined) {
+			document.addEventListener("visibilitychange", () => {
+				if (document.visibilityState === 'visible') {
+					console.log('wake up sleepy head');
+					thing.platform.resubscribe(thing);
+				}
+			}, false)
+		}
 	}
 }
 
@@ -127,6 +138,11 @@ class ThingAction {
 	// invoke action with data, returning a promise
 	// optional timeout in milliseconds
 	invoke(input, timeout) {
+	    if (timeout === undefined)
+    		timeout = Number.MAX_SAFE_INTEGER;
+    		
+    	console.log('invoking ' + this.name + ' with timeout ' + timeout);
+
 		return this.thing.platform.invoke(this.thing, this.name, input, timeout);
 	}
 }
@@ -184,36 +200,70 @@ let wot = {
 	
 	// use thing description to discover which platform it uses
 	// this is a hack and not currently in use
-	discoverPlatform:  model => {
+	discoverPlatform:  thing => {
 		// the thing description should provide a URI
 		// that uniquely identifies the platform
-	
-		if (model.platform) {
-			if (model.platform === "https://iot.mozilla.org/wot/")
-				return wot.thingsgateway;
-			
-			if (model.platform === "https://example.org/wot/webhub")
-				return wot.webhub;
-			
-			if (model.platform === "https://example.org/wot/thingweb")
-				return wot.thingweb;			
-		}
-	
-		// otherwise fall back on knowing the port numbers for each platform
+		// use some heuristics if it is missing
+		
+		let model = thing.model;
 		let url = new URL(thing.uri);
 		let port = url.port;
+		
+		let webHub = "https://github.com/draggett/arena-webhub";
+		let thingsGateway = "https://iot.mozilla.org/wot/";
+		let thingWeb = "https://projects.eclipse.org/projects/iot.thingweb";
+		
+		if (model.platform) {
+			if (model.platform === webHub)
+				return new ArenaWebHubWS();
+			
+			if (model.platform === thingsGateway)
+				return new ThingsGateway();
+			
+			if (model.platform === thingWeb)
+				return new ThingWeb();			
+		} else {
+			// ThingWeb always provides "forms" on
+			// each property, action and event
+			
+			// find a property
+			for (let name in model.properties) {
+				if (model.properties.hasOwnProperty(name)) {
+					let property = model.properties[name];
+					
+					if (property.forms) 
+						return new ThingWeb();
+				}
+			}
+				
+			// find an action
+			for (let name in model.actions) {
+				if (model.actions.hasOwnProperty(name)) {
+					let action = model.actions[name];
+					
+					if (action.forms)
+						return new ThingWeb();
+				}
+			}
+				
+			// find an event
+			for (let name in model.events) {
+				if (model.events.hasOwnProperty(name)) {
+					let event = model.events[name];
+					
+					if (event.forms)
+						return new ThingWeb();
+				}
+			}
+				
+			// Mozilla always provides "links" on the thing
+			// and by default uses port 4443
+			if (model.links || port == 4443)
+				return new ThingsGateway();	
+		}
 	
-		if (port == 8080)
-			return wot.thingweb;
-	
-		if (port == 4443)
-			return wot.thingsgateway;
-	
-		if (port == 8888 || port == 8383)
-			return wot.webhub;
-	
-		// otherwise assume it's the Arena Web Hub
-		return wot.webhub;
+		// otherwise assume it's compatible with ThingWeb
+		return new ThingWeb();
 	},
 	
 	// asynchronous function to create consumed thing from its URI
@@ -221,14 +271,8 @@ let wot = {
 		let create = function (resolve, reject) {
 			// use WebHub driver to retrieve thing description
 			wot.platform.getModel(uri).then(model => {
-				const td = JSON.stringify(model, null, 4);
-				//console.log("data is: " + td);
-				let pre = document.getElementById("model");
-				pre.innerText = td;
-
 				let thing = new Thing(uri, model);
 				wot.things[model.name] = thing;
-				//thing.properties.on.write(true);
 				resolve(thing);
 			})
 		};
@@ -548,6 +592,7 @@ class ArenaWebHubSSE extends ArenaWebHub {
     		data = null;
     		
     	var act = function (resolve, reject) {
+    		console.log('timeout is ' + timeout);
     		const uri = thing.uri + "/actions/" + name;
     		let timer = setTimeout(function () {
     			reject('timeout on action ' + name);
@@ -563,6 +608,7 @@ class ArenaWebHubSSE extends ArenaWebHub {
 			};
 			
          	fetch(uri, opts).then(response => {
+         		console.log('got response');
          		clearTimeout(timer);
         		if (response.ok) {
         			if (response.status == 204)
@@ -603,6 +649,15 @@ class ArenaWebHubSSE extends ArenaWebHub {
     	// open the server-sent event stream
 		thing.eventSource = new EventSource(thing.uri+ "/events?jwt=" + this.jwt);
 
+		thing.eventSource.onopen = function() {
+			console.log("EventSource opened connection to " + thing.uri + "/events")
+		};
+
+		thing.eventSource.onerror = function() {
+			console.log("EventSource error on connection to " + thing.uri + "/events");
+			thing.eventSource = null;
+		};
+
 		thing.eventSource.onmessage = function(e) {
 			//console.log("received SSE message: " + e.data);
 			let data = JSON.parse(e.data);
@@ -629,6 +684,15 @@ class ArenaWebHubSSE extends ArenaWebHub {
 				console.log("unknown message")
 			}
 		};
+    }
+    
+    // when browser tab becomes visible
+    // check if the connection needs reopening
+    resubscribe (thing) {
+    	if (!thing.eventSource) {
+    		console.log('reopening event source for ' + thing.name);
+    		thing.platform.subscribe(thing);
+    	}
     }
     
     unsubscribe (thing) {
@@ -787,10 +851,13 @@ class ArenaWebHubWS extends ArenaWebHub {
 
         thing.ws.onclose = () => {
             console.log("websocket connection closed");
+            thing.ws = null;
         };
 
         thing.ws.onerror = () => {
             console.log("websocket connection error");
+            this.ws.close();
+            thing.ws = null;
         };
 
         thing.ws.onmessage = message => {
@@ -805,6 +872,15 @@ class ArenaWebHubWS extends ArenaWebHub {
         };
     }
     
+    // when browser tab becomes visible
+    // check if the connection needs reopening
+    resubscribe (thing) {
+    	if (!thing.ws) {
+    		console.log('reopening web socket for ' + thing.name);
+    		thing.platform.subscribe(thing);
+    	}
+    }
+    
     unsubscribe (thing) {
     	//console.log('unsubscribe from ' + thing.name);
     	if (thing.ws) {
@@ -814,7 +890,19 @@ class ArenaWebHubWS extends ArenaWebHub {
     }
 }
 
-// driver for Mozilla Things Gateway
+// Driver for Mozilla Things Gateway, see https://iot.mozilla.org/wot/
+//
+// This uses HTTP for reading and writing properties, and invoking actions.
+// WebSockets is used for listening for events and property updates.
+// The code could be updated to also use WebSockets for invoking actions
+// and when the client wants to update a property. Further work is also
+// needed to share a WebSocket connection rather than as now opening one 
+// connection for each observeEvent or observeProperty. Additional work
+// is needed to support the browser visibilityChange event to re-open
+// sockets when a browser tab becomes visible after being hidden.
+//
+// Note that Things Gateway Web typically uses port 4443 and adds a
+// "links" meta property to thing description
 
 class ThingsGateway {
 	constructor () {
@@ -1018,7 +1106,13 @@ class ThingsGateway {
     		this.subscribe(thing);
     }
     
-    subscribe (thing, name) {
+    unObserveEvent (thing, name) {
+    }
+    
+    unObserveProperty (thing, name) {
+    }
+    
+   subscribe (thing, name) {
     	// open the WebSockets event stream
 		const wsUri = thing.uri.replace(/^http/, 'ws');
     	this.ws = new WebSocket(`${wsUri}?jwt=${this.jwt}`);
@@ -1082,12 +1176,31 @@ class ThingsGateway {
         };
     }
     
+    // when browser tab becomes visible
+    // check if the connection needs reopening
+    resubscribe (thing) {
+    	console.log('reopening web socket for ' + thing.name);
+    }
+    
     unsubscribe () {
     	console.log('thing.unsubscribe() is not implemented');
     }
 }
 
-// driver for Siemens ThingWeb platform
+// Driver for Siemens's Eclipse ThingWeb platform, see
+//       https://projects.eclipse.org/projects/iot.thingweb
+//
+// This uses HTTP for reading and writing properties, and invoking actions.
+// You have a choice between long polling or Web Sockets for listening
+// for events. A separate socket is needed for each event. This code
+// uses polling to determine when properties have changed their values.
+// A more recent version of ThingWeb allows you to use a Web Socket
+// for that which would be much more efficient. Further work is also
+// needed to support the browser visibilityChange event to re-open
+// the sockets when a browser tab becomes visible after being hidden.
+//
+// Note that ThingWeb typically uses port 8080 and adds a "form" meta
+// property to each property, action and event in the thing description
 
 class ThingWeb {
 	constructor () {
@@ -1253,6 +1366,12 @@ class ThingWeb {
     	}, latency);  
     }
     
+    unObserveEvent (thing, name) {
+    }
+    
+    unObserveProperty (thing, name) {
+    }
+    
     waitForLongPolledEvent(thing, name, timeout) {
     	var wait = function (resolve, reject) {
     		reject('not implemented by test agent for this platform');
@@ -1328,6 +1447,12 @@ class ThingWeb {
                 console.log("JSON syntax error in " + message);
             }
         };
+    }
+    
+    // when browser tab becomes visible
+    // check if the connection needs reopening
+    resubscribe (thing) {
+    	console.log('reopening web sockets for ' + thing.name);
     }
     
     unsubscribe () {

@@ -255,7 +255,7 @@ function test_speed(number, thing, count, timeout, description, expected) {
 function run_tests (thing_uri) {
 	wot.consume(thing_uri).then(thing => {
 		let pre = document.getElementById("model");
-		pre.innerText = JSON.stringify(thing.model, null, 4);
+		pre.innerText = JSON.stringify(thing.model, null, 2);
 
 		// display the properties from the model
 		let properties = thing.properties;

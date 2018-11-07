@@ -4,10 +4,14 @@ const webhub = "https://localhost:8888";
 
 let light = {
 	start: () => {
-		wot.platform = new ArenaWebHubSSE();
+		wot.platform = new ArenaWebHubWS(); // ArenaWebHubSSE();
 		wot.consume("/things/light")
 			.then(thing => {
 				console.log("got thing");
+				const td = JSON.stringify(thing.model, null, 2);
+				let pre = document.getElementById("model");
+				pre.innerText = td;
+
 				let brightness = thing.properties.brightness.value;
 				console.log("brightness is " + brightness);
 				
@@ -25,17 +29,20 @@ let light = {
 				// change of slide should update brightness
 				slider.onchange = e => {
 					let value = slider.valueAsNumber;
-					
-					if (transition.checked) {
-						// initiate transition to target brightness
-						// transition should take 1000 milliseconds
-						thing.actions.transition.invoke({
-							target: value,
-							duration: 1000
-						});
-					} else {
-						// set brightness immediately
-						thing.properties.brightness.write(value);
+					try {
+						if (transition.checked) {
+							// initiate transition to target brightness
+							// transition should take 1000 milliseconds
+							thing.actions.transition.invoke({
+								target: value,
+								duration: 1000
+							});
+						} else {
+							// set brightness immediately
+							thing.properties.brightness.write(value);
+						}
+					} catch (err) {
+						console.log(err);
 					}
 				};
 				
@@ -43,6 +50,7 @@ let light = {
 				console.log("couldn't get thing: " + err);
 			});
 	},
+	
 	setBrightness: (brightness) => {
 		let bulb_on = document.getElementById('on');
 		let bulb_off = document.getElementById('off');
