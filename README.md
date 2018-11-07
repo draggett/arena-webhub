@@ -63,13 +63,13 @@ Applications may use any suitable technologies for accessing IoT devices, e.g. B
 Any help with these would be welcomed.
 
 * **Simplified thing API** where things look like regular JavaScript objects with getters and setters for properties, and object methods for actions. Attempts to write invalid values throws an exception, and asynchronous errors result in observable events, e.g. loss of connectivity. The simplified API will be implemented on top of the existing API.
-
-* **Things as first class types** that can be passed to properties, actions and events. This will involve a new _supply_ method that is passed a thing description and returns a promise. Things are automatically published so there is no need for the expose method.
+* **Things as first class types** that can be passed to properties, actions and events. This will involve a new _supply_ method that is passed a thing description and returns a promise. Things are automatically published so there is no longer a need for the expose method.
 * **More efficient handling of high speed streams**, allowing you to read and write data in blocks rather than having to do so one data point at a time.  The protocols will be able to choose how to best buffer data for maximum performance.
-* **Peer to peer to peer networks of Web Hubs**, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard is designed for peer to peer data transfer and is supported by Web browsers.
-* **Enlarged set of example applications** for different domains, IoT technologies and standards. 
+* **Peer to peer networks of Web Hubs**, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard is designed for peer to peer data transfer and is supported by Web browsers.
+* **Enlarged set of example applications** for different domains, IoT technologies and standards.
+* **Example of how to manage multiple things** including discovery, installation and configuration.
 
-Note that the examples include a client-side Web of Things library (see "[client/wot.js](client/wot.js)") with an adaptation layer for different Web of Things platforms.
+Note that the examples include a client-side Web of Things library (see "[client/wot.js](client/wot.js)") with an adaptation layer for different Web of Things platforms. A further library is planned to make it easy to work with semantic annotations that describe the kinds of things (e.g. a _light_), their capabilities (e.g. dimmable), and the context in which they reside (e.g. my kitchen).
 
 ## Web of Things
 
