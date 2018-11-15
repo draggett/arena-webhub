@@ -54,6 +54,12 @@ Applications should provide a means for users to register accounts, to login or 
 
 The email address and mobile number may also be used by applications to send users notifications as appropriate, however this require the user's explicit approval and should be updateable as part of the user's account details. Applications are further required to conform with applicable data privacy regulations, such as Europe's GDPR, in respect to data handling policies.
 
+The IoT Security Foundation has published a report on the role of hubs for IoT security:
+
+* [IoT Security Architecture and Policy for the Home - a Hub Based Approach](https://www.iotsecurityfoundation.org/wp-content/uploads/2018/11/IoT-Security-Architecture-and-Policy-for-the-Home-a-Hub-Based-Approach.pdf)
+
+The report discusses the role of hubs for increased security along with the means to provide streamlined support for managing security updates to IoT devices connected via the hub. In principle, this could be implemented via a device management application on the Arena Web Hub.
+
 ## IoT technologies
 
 Applications may use any suitable technologies for accessing IoT devices, e.g. Bluetooth and ZigBee, for which there are existing node modules. A similar situation applies to accessing devices belonging to particular ecosystems, e.g. Apple HomeKit, Android Things, the Open Connectivity Foundation (OCF) and oneM2M. A major benefit of the Web of Things is to shield client applications from the IoT technologies at the network edge.
