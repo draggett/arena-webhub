@@ -581,7 +581,7 @@ function produce(model) {
 					if (obj.hasOwnProperty(name) && properties.hasOwnProperty(name)) {
 						try {
 							properties[name].write(obj[name]);
-						} catch {
+						} catch (err) {
 							console.log("couldn't write " + obj[name] + ' to ' + name);
 							return fail(json.id, 400, "bad request");
 						}

@@ -19,11 +19,23 @@ function clear_model() {
 	log.innerText = '';
 }
 
-function log_result(description, expected) {
+function log_result(number, description, expected) {
 	if (expected)
-		log('  \u2714 ' + description);
+		log('  \u2714 ' + number + '. ' + description);
 	else
-		log('  <b>\u2718\u200A' + description + '</b>');  // or \u274C
+		log('  <b>\u2718\u200A' + number + '. ' + description + '</b>');  // or \u274C
+	
+	// if we're embedded in an IFRAME post result to parent window
+	// this is used by F-Interop for centralised data collection
+	if (window.location !== window.parent.location) {
+		let message = {
+			expected: expected,
+			number: number,
+			description: description
+		};
+	
+		window.parent.postMessage(message, "https://localhost:8888");
+	}
 }
 
 function waitForEvent(thing, name, timeout) {
@@ -83,16 +95,16 @@ function test_write (number, thing, name, value, description, expected) {
 		Promise.all(promises).then(results => {
 			if (results[0] && results[1]) {
 				//console.log('passed: ' + description);
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 			} else {
 				//console.log('failed: ' + description);
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 			}
 			
 			resolve();
 		}).catch(err => {
 			console.log('rejected: ' + err);
-			log_result(number + '. ' + description, !expected);
+			log_result(number, description, !expected);
 			resolve();
 		});
 	};
@@ -110,14 +122,14 @@ function test_action(number, thing, name, input, output, description, expected) 
 			.then (result => {
 				console.log(name + '(' + input + ') returned ' + result);
 				if (result === output || (result === undefined && output === undefined))
-					log_result(number + '. ' + description, expected);
+					log_result(number, description, expected);
 				else
-					log_result(number + '. ' + description, !expected);
+					log_result(number, description, !expected);
 					
 				resolve();
 			}).catch (err => {
 				console.log(name + '(' + input + ') failed ');
-				log_result(number + '. ' + description, !expected);
+				log_result(number, description, !expected);
 				resolve();
 			});
 	};
@@ -137,16 +149,16 @@ function test_action_event(number, thing, name, input, event, description, expec
 		Promise.all(promises).then(results => {
 			if (results[0] && results[1]) {
 				//console.log('passed: ' + description);
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 			} else {
 				//console.log('failed: ' + description);
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 			}
 			
 			resolve();
 		}).catch(err => {
 			console.log('rejected: ' + err);
-			log_result(number + '. ' + description, !expected)
+			log_result(number, description, !expected)
 			resolve();
 		});
 	};
@@ -161,12 +173,12 @@ function test_action_lp_event(number, thing, name, input, event, description, ex
 		let timeout = 2000; // 2 seconds
 		thing.platform.waitForLongPolledEvent(thing, event, timeout)
 			.then(res => {
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 				resolve(res);
 			})
 			.catch(err => {
 				console.log('waitForLongPolledEvent failed: ' + err);
-				log_result(number + '. ' + description, !expected);
+				log_result(number, description, !expected);
 				resolve(err);
 			});
 		
@@ -175,7 +187,7 @@ function test_action_lp_event(number, thing, name, input, event, description, ex
 			thing.actions[name].invoke(input, timeout)
 				.catch(err => {
 					console.log('action ' + name + ' failed: ' + err);
-					log_result(number + '. ' + description, !expected);
+					log_result(number, description, !expected);
 					resolve(err);
 				});
 		}, 1);
@@ -200,16 +212,16 @@ function test_action_prop(number, thing, action, name, value, description, expec
 		Promise.all(promises).then(results => {
 			if (results[0] && results[1]) {
 				//console.log('passed: ' + description);
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 			} else {
 				//console.log('failed: ' + description);
-				log_result(number + '. ' + description, expected);
+				log_result(number, description, expected);
 			}
 			
 			resolve();
 		}).catch(err => {
 			console.log('rejected: ' + err);
-			log_result(number + '. ' + description, !expected)
+			log_result(number, description, !expected)
 			resolve();
 		});
 	};
@@ -364,5 +376,6 @@ function start () {
 }
 
 window.addEventListener("load", () => {
+	console.log('parent type is: ' + typeof(window.parent));
     start();
 }, false);
