@@ -30,10 +30,10 @@ On Safari you will need to follow these steps:
 
 const default_domain = 'localhost';
 const default_port = 8888;
+const default_certs_dir = '.';
 
 let config = {
-	key: FS.readFileSync('./key.pem'),
-  	cert: FS.readFileSync('./cert.pem'),
+  	certs: default_certs_dir,
 	port: default_port,
 	domain: default_domain,
 	accountPath: '/account',
@@ -1180,11 +1180,11 @@ function process_post(request, response, uri, body) {
 	}
 }
 
-// certificate for transport layer security 
+// certificates for transport layer security 
 
 let server_options = {
-	cert: config.cert,
-	key: config.key
+	key: FS.readFileSync(config.certs + '/privkey.pem'),
+	cert: FS.readFileSync(config.certs + '/fullchain.pem')
 };
 
 // start the HTTPS server - expect to extend it to support WebSockets
@@ -1434,6 +1434,9 @@ module.exports = options => {
 		
 		if (options.domain)
 			config.domain = options.domain;
+			
+		if (options.certs)
+			config.certs = options.certs;
 		
 		if (options.accountPath)
 			config.accountPath = options.accountPath;

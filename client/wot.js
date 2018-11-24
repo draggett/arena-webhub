@@ -44,15 +44,23 @@ class Thing {
 			thing.platform.unsubscribe(thing);
 		};
 		
-		// watch for when browser tab becomes visible so
-		// that connections can be re-openeded as needed
+		// watch for when browser tab becomes visible or
+		// when it regains the focus after a long interval
+		// so that connections can be re-openeed as needed
 		if (document && document.hidden !== undefined) {
 			document.addEventListener("visibilitychange", () => {
 				if (document.visibilityState === 'visible') {
-					console.log('wake up sleepy head');
+					console.log('wake up on visibility change');
 					thing.platform.resubscribe(thing);
 				}
-			}, false)
+			}, false);
+			
+			window.addEventListener("focus", () => {
+				if (document.visibilityState === 'visible') {
+					console.log('wake up on regaining focus');
+					thing.platform.resubscribe(thing);
+				}
+			}, false);
 		}
 	}
 }
