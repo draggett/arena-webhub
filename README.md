@@ -27,7 +27,9 @@ The server looks for "fullchain.pem" and "privkey.pem" in the directory it is ru
 Alternatively, you can create self-signed certificates for "localhost" using openssl, e.g.
 
 ```
-openssl req -newkey rsa:2048 -x509 -nodes -keyout privkey.pem -new -out fullchain.pem -subj /CN=localhost -reqexts SAN -extensions SAN -config <(cat /System/Library/OpenSSL/openssl.cnf \
+openssl req -newkey rsa:2048 -x509 -nodes -keyout privkey.pem -new \
+-out fullchain.pem -subj /CN=localhost -reqexts SAN -extensions SAN \
+-config <(cat /System/Library/OpenSSL/openssl.cnf \
     <(printf '[SAN]\nsubjectAltName=DNS:localhost')) -sha256 -days 3650
 ```
 

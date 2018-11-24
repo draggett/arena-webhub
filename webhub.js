@@ -9,7 +9,9 @@ var HTTPS = require("https"),
 /*
 server_options provide localhost a key and certificate as created using:
 
-openssl req -newkey rsa:2048 -x509 -nodes -keyout privkey.pem -new -out fullchain.pem -subj /CN=localhost -reqexts SAN -extensions SAN -config <(cat /System/Library/OpenSSL/openssl.cnf \
+openssl req -newkey rsa:2048 -x509 -nodes -keyout privkey.pem -new \
+-out fullchain.pem -subj /CN=localhost -reqexts SAN -extensions SAN \
+-config <(cat /System/Library/OpenSSL/openssl.cnf \
     <(printf '[SAN]\nsubjectAltName=DNS:localhost')) -sha256 -days 3650
         
 Users will be warned that a secure connection cannot be made.
@@ -1180,174 +1182,6 @@ function process_post(request, response, uri, body) {
 	}
 }
 
-// certificates for transport layer security 
-
-let server_options = {
-	key: FS.readFileSync(config.certs + '/privkey.pem'),
-	cert: FS.readFileSync(config.certs + '/fullchain.pem')
-};
-
-// start the HTTPS server - expect to extend it to support WebSockets
-let server = HTTPS.createServer(server_options, function(request, response) {
-    //console.log('http request: ' + request.url);
-    
-    let uri = URL.parse(URL.resolve(config.base, request.url));
-
-    console.log('HTTP request: ' + request.method + ' ' + uri.path);
-    console.log(request.headers);
-    
-    if (request.method === "OPTIONS") {
-		response.writeHead(200, {
-			'Content-Length': 0,
-			'Connection': 'keep-alive',
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Methods': 'POST, GET, PUT, OPTIONS',
-			'Access-Control-Allow-Credentials': 'true',
-			'Access-Control-Allow-Headers': 'Content-Type, Upgrade, Authorization'
-		});
-
-		//response.write(body);
-		response.end();
-		return;
-    }
-    
-    const re = new RegExp('^' + config.accountPath + '(/\\S*)?$');
-    
-    if (re.test(uri.pathname)) {
-    	return config.accountManager(request, response);
-    }
-    
-	if (request.method === "GET" || request.method === 'HEAD') {
-		process_get(request, response, uri);
-    } else if (request.method === "PUT" || request.method === 'POST') {
-		//console.log("headers: " + JSON.stringify(request.headers, null, 4));
-		let contentType = request.headers['content-type'];
-	
-		if (contentType !== mime_types.json)
-			return fail(500, "expected " + mime_types.json + " for content-type", response);
-
-    	// okay, get the request body and fail if too large
-    	const MAX_REQUEST_SIZE = 1048576;  // 1 Mb = 1024 squared
-		let body = '';
-		
-		request.on('data', chunk => {
-			if (body.length + chunk.length > MAX_REQUEST_SIZE) {
-				fail(500, "request body too large", response);
-			}
-
-			body += chunk.toString(); // convert Buffer to string
-		});
-		
-		request.on('end', () => {
-			//console.log(body);
-			process_post(request, response, uri, body);
-		});
-		
-		request.on('error', () => {
-			console.log('unexpected end of data');
-			fail(500, "unexpected end of data", response);
-		});
-
-    } else { // unimplemented HTTP Method
-        fail(501, "not implemented " + request.method + " " + request.url, response);
-    }
-}).listen(config.port);
-
-console.log('started https server on port ' + config.port);
-
-// listen for close event to track long polling
-server.on('close', (request, socket, head) => {
-	console.log('bye');
-	console.log('request url: ' + request.url);
-});
-
-// listen for web socket connections from thing clients
-// for now each thing's client involves a separate socket
-// future work will share socket for things with same server
-server.on('upgrade', (request, socket, upgradeHead) => {
-	console.log('received upgrade request with headers\n'
-				 + JSON.stringify(request.headers, null, 4));
-	if (request.headers.upgrade !== 'websocket') {
-		return fail(501, "unable to upgrade to " + request.headers.upgrade, response);
-  	}
-  
-	if (!authorised(request))
-		return fail(401, "unauthorized", response);
-		
-  	// handle the websocket connection
-  	let uri = URL.parse(URL.resolve(config.base, request.url));
-  	console.log('web socket client for ' + uri.pathname);
-  
-	// generate the handshake key
-	let SHA1 = new HASHES.SHA1().b64(request.headers["sec-websocket-key"] +
-						"258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-	//console.log("response key: " + SHA1);
-  
-	// send server response headers
-  	socket.write('HTTP/1.1 101 Switching Protocols\r\n' +
-               'Upgrade: WebSocket\r\n' +
-               'Connection: Upgrade\r\n' +
-               'Sec-WebSocket-Accept: ' + SHA1 + '\r\n' +
-               '\r\n');
-               
-    socket.setEncoding('binary');
-        
-    socket.on('error', err => {
-    	console.log('socket error: ' + err);
-    });
-
-	// identify the thing and associated it with this socket
-
-    let path = uri.pathname;
-    
-    if (/^\/things\/.+/.test(path)) {
-		let thingID = path.substr(8);
-		console.log('path: ' + path)
-				
-		if (thingID) {
-			console.log('thingID: ' + thingID);
-			let thing = things[thingID];
-			
-			if (!thing) {
-				console.log("request missing thing ID");
-				socket.end();
-			}
-			
-			// add socket to thing's sockets
-			thing.addSocket(socket);
-			thing.message = ""; // empty continuation buffer
-			
-			// set up listener for incoming frames      
-    		socket.on('data', data => {    			
-    			// if PING respond with PONG
-    			let octet = data.charCodeAt(0);
-    			
-    			if ((octet & 15) == 0x09) {
-    				let buffer = unpack(data);
-    				buffer[0] = (buffer[0] & 0xF0) | 0x0A;
-    				socket.write(buffer, 'binary');
-    			} else {
-    				// test FIN to check for continuation frame
-    				if ((octet & 128) == 128) {
-    					// final frame for this message
-    					let message = thing.message + ws_receive(data);
-    					thing.message = "";
-    					//console.log('received: ' + message);
-    					thing.receive(socket, message);
-    				} else {
-    					// save continuation
-    					thing.message += ws_receive(data);
-    				}
-    			}
-   			});
-
-		}
-	} else {
-		console.log("request missing /things");
-		socket.end();
-	}    
-})
-
 // send string data to web socket
 function ws_send(socket, data) {
 	//console.log("send: " + data);
@@ -1453,6 +1287,174 @@ module.exports = options => {
 	let webhub = {
 		produce: produce
 	};
+	
+	// certificates for transport layer security 
+
+	let server_options = {
+		key: FS.readFileSync(config.certs + '/privkey.pem'),
+		cert: FS.readFileSync(config.certs + '/fullchain.pem')
+	};
+
+	// start the HTTPS server - expect to extend it to support WebSockets
+	let server = HTTPS.createServer(server_options, function(request, response) {
+		//console.log('http request: ' + request.url);
+	
+		let uri = URL.parse(URL.resolve(config.base, request.url));
+
+		console.log('HTTP request: ' + request.method + ' ' + uri.path);
+		console.log(request.headers);
+	
+		if (request.method === "OPTIONS") {
+			response.writeHead(200, {
+				'Content-Length': 0,
+				'Connection': 'keep-alive',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'POST, GET, PUT, OPTIONS',
+				'Access-Control-Allow-Credentials': 'true',
+				'Access-Control-Allow-Headers': 'Content-Type, Upgrade, Authorization'
+			});
+
+			//response.write(body);
+			response.end();
+			return;
+		}
+	
+		const re = new RegExp('^' + config.accountPath + '(/\\S*)?$');
+	
+		if (re.test(uri.pathname)) {
+			return config.accountManager(request, response);
+		}
+	
+		if (request.method === "GET" || request.method === 'HEAD') {
+			process_get(request, response, uri);
+		} else if (request.method === "PUT" || request.method === 'POST') {
+			//console.log("headers: " + JSON.stringify(request.headers, null, 4));
+			let contentType = request.headers['content-type'];
+	
+			if (contentType !== mime_types.json)
+				return fail(500, "expected " + mime_types.json + " for content-type", response);
+
+			// okay, get the request body and fail if too large
+			const MAX_REQUEST_SIZE = 1048576;  // 1 Mb = 1024 squared
+			let body = '';
 		
+			request.on('data', chunk => {
+				if (body.length + chunk.length > MAX_REQUEST_SIZE) {
+					fail(500, "request body too large", response);
+				}
+
+				body += chunk.toString(); // convert Buffer to string
+			});
+		
+			request.on('end', () => {
+				//console.log(body);
+				process_post(request, response, uri, body);
+			});
+		
+			request.on('error', () => {
+				console.log('unexpected end of data');
+				fail(500, "unexpected end of data", response);
+			});
+
+		} else { // unimplemented HTTP Method
+			fail(501, "not implemented " + request.method + " " + request.url, response);
+		}
+	}).listen(config.port);
+
+	console.log('started https server on port ' + config.port);
+
+	// listen for close event to track long polling
+	server.on('close', (request, socket, head) => {
+		console.log('bye');
+		console.log('request url: ' + request.url);
+	});
+
+	// listen for web socket connections from thing clients
+	// for now each thing's client involves a separate socket
+	// future work will share socket for things with same server
+	server.on('upgrade', (request, socket, upgradeHead) => {
+		console.log('received upgrade request with headers\n'
+					 + JSON.stringify(request.headers, null, 4));
+		if (request.headers.upgrade !== 'websocket') {
+			return fail(501, "unable to upgrade to " + request.headers.upgrade, response);
+		}
+  
+		if (!authorised(request))
+			return fail(401, "unauthorized", response);
+		
+		// handle the websocket connection
+		let uri = URL.parse(URL.resolve(config.base, request.url));
+		console.log('web socket client for ' + uri.pathname);
+  
+		// generate the handshake key
+		let SHA1 = new HASHES.SHA1().b64(request.headers["sec-websocket-key"] +
+							"258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+		//console.log("response key: " + SHA1);
+  
+		// send server response headers
+		socket.write('HTTP/1.1 101 Switching Protocols\r\n' +
+				   'Upgrade: WebSocket\r\n' +
+				   'Connection: Upgrade\r\n' +
+				   'Sec-WebSocket-Accept: ' + SHA1 + '\r\n' +
+				   '\r\n');
+			   
+		socket.setEncoding('binary');
+		
+		socket.on('error', err => {
+			console.log('socket error: ' + err);
+		});
+
+		// identify the thing and associated it with this socket
+
+		let path = uri.pathname;
+	
+		if (/^\/things\/.+/.test(path)) {
+			let thingID = path.substr(8);
+			console.log('path: ' + path)
+				
+			if (thingID) {
+				console.log('thingID: ' + thingID);
+				let thing = things[thingID];
+			
+				if (!thing) {
+					console.log("request missing thing ID");
+					socket.end();
+				}
+			
+				// add socket to thing's sockets
+				thing.addSocket(socket);
+				thing.message = ""; // empty continuation buffer
+			
+				// set up listener for incoming frames      
+				socket.on('data', data => {    			
+					// if PING respond with PONG
+					let octet = data.charCodeAt(0);
+				
+					if ((octet & 15) == 0x09) {
+						let buffer = unpack(data);
+						buffer[0] = (buffer[0] & 0xF0) | 0x0A;
+						socket.write(buffer, 'binary');
+					} else {
+						// test FIN to check for continuation frame
+						if ((octet & 128) == 128) {
+							// final frame for this message
+							let message = thing.message + ws_receive(data);
+							thing.message = "";
+							//console.log('received: ' + message);
+							thing.receive(socket, message);
+						} else {
+							// save continuation
+							thing.message += ws_receive(data);
+						}
+					}
+				});
+
+			}
+		} else {
+			console.log("request missing /things");
+			socket.end();
+		}    
+	})
+
 	return webhub;
 };
