@@ -20,10 +20,14 @@ Arena has minimal external dependencies and is compact with under 2000 lines of 
 
 ### Server certificates
 
-The server looks for "cert.pem" and "key.pem" in the directory it is run in.  You can create self-signed certificates for "localhost" using openssl, e.g.
+The server looks for "fullchain.pem" and "privkey.pem" in the directory it is run in.  You can create these for free with Let's Encrypt using the certbot utility.
+
+* https://letsencrypt.org/getting-started/
+
+Alternatively, you can create self-signed certificates for "localhost" using openssl, e.g.
 
 ```
-openssl req -newkey rsa:2048 -x509 -nodes -keyout key.pem -new -out cert.pem -subj /CN=localhost -reqexts SAN -extensions SAN -config <(cat /System/Library/OpenSSL/openssl.cnf \
+openssl req -newkey rsa:2048 -x509 -nodes -keyout privkey.pem -new -out fullchain.pem -subj /CN=localhost -reqexts SAN -extensions SAN -config <(cat /System/Library/OpenSSL/openssl.cnf \
     <(printf '[SAN]\nsubjectAltName=DNS:localhost')) -sha256 -days 3650
 ```
 
@@ -106,6 +110,7 @@ You are encouraged to look at the examples folder for example applications.
 
 ```javascript
 let webhub = require('arena-webhub')({
+    certs: '.',  // path to folder with server certificates
 	port: 8888,
 	accountPath: '/account',
 	accountManager: function (request, response) {
@@ -117,7 +122,7 @@ let webhub = require('arena-webhub')({
 });
 ```
 
-The port and account path are optional and default to 8888 and "/account". The accountManager and validateJWT are required application callbacks. The accountManager callback is passed two arguments for the HTTPS request and response (see the HTTPS node module), and is responsible for handling the request and the associated response. The validateJWT callback is passed two arguments for the JSON Web Token and the URL path for the connection. The return value is true if the token is currently valid for this path, or false if it isn't.
+The certs, port and account path are optional and default to ".", 8888 and "/account" respectively. The accountManager and validateJWT are required application callbacks. The accountManager callback is passed two arguments for the HTTPS request and response (see the HTTPS node module), and is responsible for handling the request and the associated response. The validateJWT callback is passed two arguments for the JSON Web Token and the URL path for the connection. The return value is true if the token is currently valid for this path, or false if it isn't.
 
 The Arena Web Hub module exports a single function for applications to expose things for access by clients. The _produce_ method is passed a thing description as a JSON object and returns a promise for the exposed thing, for example:
 

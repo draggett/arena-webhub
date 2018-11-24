@@ -9,9 +9,9 @@ var HTTPS = require("https"),
 /*
 server_options provide localhost a key and certificate as created using:
 
-openssl req -newkey rsa:2048 -x509 -nodes -keyout key.pem -new -out cert.pem -subj /CN=localhost -reqexts SAN -extensions SAN -config <(cat /System/Library/OpenSSL/openssl.cnf \
+openssl req -newkey rsa:2048 -x509 -nodes -keyout privkey.pem -new -out fullchain.pem -subj /CN=localhost -reqexts SAN -extensions SAN -config <(cat /System/Library/OpenSSL/openssl.cnf \
     <(printf '[SAN]\nsubjectAltName=DNS:localhost')) -sha256 -days 3650
-    
+        
 Users will be warned that a secure connection cannot be made.
 
 On Chrome you can inform the browser that you trust this certificate.
@@ -33,7 +33,7 @@ const default_port = 8888;
 const default_certs_dir = '.';
 
 let config = {
-  	certs: default_certs_dir,
+  	certs: default_certs_dir, // must contain privkey.pem and fullchain.pem
 	port: default_port,
 	domain: default_domain,
 	accountPath: '/account',
