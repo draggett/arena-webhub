@@ -45,10 +45,33 @@ _And similarly for actions and events …_
 
 ## How to run the tests
 
-* The simplest case is when testing the Arena Web Hub platform. You just need to open
-	a console and change to the folder containing the test framework ("examples/Interop Testing") and run the command “npm start”. This automatically launches the Web server. You can then
-	open the web page at https://localhost:888/interop.html. Note "npm-start" runs the Web Hub on the application defined by "[arena-webhub.js](arena-webhub.js)" and is equivalent to running "node arena-webhub.js" 
+* The first step is to clone the repository, e.g. using the command
 
-- To test the Siemens ThingWeb platform, you need a second console to launch ThingWeb and get it to execute the test applications with the command “wot-servient thing-web-interop.js”, see [thing-web-interop.js](thing-web-interop.js), which is very similar to  "arena-webhub.js", differing in only a few contextual details.
-- The Mozilla Things Gateway is more complicated. After installing it from the Mozilla site, you need to create a user account and install a test add-on. Once that is done, you can then log into the Things Gateway, enable the test add-on and activate the test thing. _The addon code will be uploaded soon_.
+  ```
+  git clone https://github.com/draggett/arena-webhub
+  ```
+
+  You should then change directory to "examples/Interop Testing" and run the command
+
+  ```
+  npm install
+  ```
+
+  to install dependencies and you should then start the server with the command
+
+  ```
+  npm start
+  ```
+
+  This runs the Web Hub on the application defined by "[arena-webhub.js](arena-webhub.js)" and is equivalent to running the command "node arena-webhub.js" . You should then use a web browser to open the web application at https://localhost:8888/interop.html.  The web page offers a choice of platforms to run the tests on. The first choice is the Arena Web Hub using Web Sockets. The second choice is the Arena Web Hub using Server Sent Events. The next choice is the Siemens node-wot server (from the Eclipse ThingWeb project) using long polling for events. 
+
+- To test the Siemens node-wot platform, you need a second console to launch the server and get it to execute the test applications with the command
+
+	```
+	wot-servient thing-web-interop.js
+	```
+
+	Where the application script [thing-web-interop.js](thing-web-interop.js) is very similar to  "arena-webhub.js", differing in only a few contextual details.
+
+- The Mozilla Things Gateway is more complicated. After installing it from the Mozilla site, you need to create a user account and install a test add-on. Once that is done, you can then log into the Things Gateway, enable the test add-on and activate the test thing. _The addon code is under development and will be uploaded soon_.
 

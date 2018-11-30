@@ -47,7 +47,13 @@ JSON-LD defines a mapping from JSON to RDF/Linked Data. There is a default conte
 
 For more information see the [W3C Editor's Draft for Thing Descriptions and the [W3C Editor's Draft for the Scripting API](https://w3c.github.io/wot-scripting-api/).
 
-The example application is defined in "[light.js](light.js)", and simulates a dimmable light. This is exposed through a web page which is accessible as http://localhost:8888/light.html.  To install the applications dependencies, you should change to this folder and then run the command:
+The starting point is to clone the repository:
+
+```
+git clone https://github.com/draggett/arena-webhub
+```
+
+The example application is defined in the script "[light.js](light.js)", and simulates a dimmable light. This is exposed through a web page.  To install the applications dependencies, you should change to "examples/Getting Started" directory and then run the command:
 
 ```
 npm install
@@ -64,6 +70,8 @@ This relies on the file "[package.json](package.json)" which declares the depend
 ```
 node light.js
 ```
+
+You should then open the web application at http://localhost:8888/light.html. The web page and its associated resources can be found in the "www" directory.
 
 Note that this example doesn't deal with user account management and  JSON web tokens. That is covered in a separate example.
 
