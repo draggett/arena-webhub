@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>WoT demo of a cyber-physical system</title>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="../../wot.js"></script>
+<script type="text/javascript" src="tank.js"></script>
+<style>
+#tank {
+	float: right;
+	margin-right: 5px;
+	width: 305px;
+	height: 650px;
+	border-top: solid 1px #EEE;
+	border-left: solid 1px #EEE;
+	box-shadow: 7px 7px 5px grey;
+	background-color: #FFFFF8;
+}
+canvas {
+	borders: solid 1px black;
+	margin-left: 3px;
+}
+#drip {
+	position: absolute;
+	right: 0px;
+	top: 400px;
+	z-index: 10;
+}
+#td {
+	padding: 10px;
+	width: calc(100% - 10px);
+	min-height: 50px;
+	background-color: #EEE;
+}
+#high, #low {
+    position: relative;
+    top: 0.5em;
+	height: 1.5em;
+	visibility: hidden;
+}
+</style>
+</head>
+<body>
+<div id="tank">
+<canvas id="canvas" width="300" height="600"></canvas><br/>
+<img id="drip" src="water.gif" alt="animation of dripping water"/>
+</div>
+
+<h1>WoT demo of a cyber-physical system</h1>
+<p>Uses WebSockets for messaging with WoT server, which uses CoAP for access to the cyber-physical system.</p>
+
+<p>Controls linked via Web of things to the water tank:</p>
+<form name="controls">
+<label>inlet valve <input name="inlet" type="checkbox"/></label><br/>
+<label>outlet valve <input name="outlet" type="checkbox"/></label><br/>
+<label>upper limit <input name="upper" type="range" min="0" max="1" step="0.1" value="0.9"/></label> <img id="high" src="bell.png" alt="event"/><br/>
+<label>lower limit <input name="lower" type="range" min="0" max="1" step="0.1" value="0.1"/></label> <img id="low" src="bell.png" alt="event"/><br/>
+<label>current level <input name="level" type="number" readonly="readonly" size="4" value="0.5"/></label><br/>
+</form>
+<p>The thing description in JSON - this maps to RDF</p>
+<pre id="td"></pre>
+</body>
+</html>

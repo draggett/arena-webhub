@@ -1,0 +1,17 @@
+{
+	"name": "Multichannel-ECG",
+	"version": "0.1.0",
+	"description": "Multichannel ECG demo for remote diagnosis of cardiac problems",
+	"main": "ecg.js",
+	"scripts": {
+		"start": "node ecg.js"
+	},
+	"author": {
+		"name": "Dave Raggett",
+		"email": "dsr@w3.org"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"arena-webhub": "1.0.6"
+	}
+}

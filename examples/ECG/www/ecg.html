@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>ECG demo</title>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="wot.js"></script>
+<script type="text/javascript" src="ecg.js"></script>
+<style>
+body {
+	padding: 0;
+	background-color: rgb(255,255,230);
+}
+#canvas {
+	padding: 5px;
+	borders: solid 1px black;
+	margin-left: 10px;
+	margin-right: 10px;
+	border-top: solid 1px #EEE;
+	border-left: solid 1px #EEE;
+	box-shadow: inset 0 0 10px #000000;
+	border-radius: 10px;
+}
+pre {
+	background-color: rgb(240,250,255);
+	padding: 10px;
+}
+</style>
+</head>
+<body>
+<p>ECG data from physio.net <a title="Combined measurement of ECG, breathing and seismocardiogram" href="https://physionet.org/physiobank/database/cebsdb/">CEBS database</a> for demo of real-time streaming.
+</p>
+<canvas id="canvas" width="800" height="600"></canvas><br/>
+
+<p>The display shows streaming data for a pair of electrocardiogram sensors, a respiratory band and a seismocardiogram. The scenario is where someone is reported with chest pains and a health worker has attached sensors and is seeking a diagnosis from a remote cardiac specialist. The Arena Web Hub uses WebSockets for signalling events, property updates and for invoking actions and receiving the responses. The HTTP and Web Sockets connections are encrypted using transport layer security. A secure JSON Web Token is used for access control. The Web Hub automatically validates data against the data model in the thing description.</p>
+
+<h3>CEBS Thing description in JSON</h3>
+<pre id="model">
+</pre>
+
+</body>
+</html>

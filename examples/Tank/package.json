@@ -1,0 +1,17 @@
+{
+	"name": "tank",
+	"version": "0.1.0",
+	"description": "Cyber-physical system demo for water tank",
+	"main": "tank.js",
+	"scripts": {
+		"start": "node tank.js"
+	},
+	"author": {
+		"name": "Dave Raggett",
+		"email": "dsr@w3.org"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"arena-webhub": "1.0.6"
+	}
+}
