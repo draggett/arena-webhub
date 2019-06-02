@@ -175,14 +175,18 @@ class ThingAction {
 class ThingEvent {
 	constructor(thing, name, meta) {
 		this.name = name;
-		this.description = meta.description;
-		this.type = meta.type;
-		this.meta = meta;
+		
+		if (!(meta === undefined) && meta !== null ) {
+			this.meta = meta;
+			this.description = meta.description;
+			this.type = meta.type;
+		}
+		
 		this.thing = thing;
 		this.longpoll = [];
 	}
 	
-	emit(data) {
+	emit(data) {	
 		if (invalid(data, this.meta, this.thing))
 			throw new Error('event ' + this.name +
 				' with invalid data ' + JSON.stringify(json));
@@ -237,6 +241,13 @@ function lost_event_stream(id) {
 // which includes its type, min and max, etc.
 // this assumes that the data model itself is valid
 function invalid(data, meta, thing) {
+	if (meta === undefined) {
+		if (data === undefined || data === null)
+			return false;
+			
+		return true;
+	}
+		
 	if (data === undefined && meta.required)
 		return true;
 
@@ -283,7 +294,7 @@ function invalid(data, meta, thing) {
 		return false;
 	}
 		
-	if (type === 'number' || type === 'integer') {		
+	if (type === 'number' || type === 'integer') {
 		if (typeof data !== 'number')
 			return true;
 			
@@ -362,10 +373,14 @@ function invalid(data, meta, thing) {
 	return true;
 }
 
-// produce takes a JSON thing description and returns a Promise
-// that is resolved when the thing has been created and initialised
+function b2a (str) {
+	return Buffer.from(str, 'latin1').toString('base64');
+}
+
+// produce takes a JSON thing description and returns a thing
+// you then need to expose it to make it available to clients
 function produce(model) {
-	//console.log("model is " + JSON.stringify(model, null, 4));
+	console.log("model is " + JSON.stringify(model, null, 4));
 	let thing = {
 		properties: {},
 		actions: {},
@@ -383,7 +398,7 @@ function produce(model) {
 	thing.id = model.id;
 	thing.name = model.name;
 	model.platform = "https://github.com/draggett/arena-webhub";
-	
+
 	thing.emitEvent = function (name, json) {
 		if (thing.events.hasOwnProperty(name)) {
 			// note that event: is no longer supported for SSE
@@ -649,6 +664,92 @@ function produce(model) {
 	thing.addActionHandler = (name, handler) => {
 		if (thing.actions.hasOwnProperty(name))
 			thing.actions[name].handler = handler;
+	};
+	
+	thing.proxy = function (jwt) {
+		thing.owner = jwt;
+	};
+	
+	// republish thing on external web hub, e.g. to
+	// provide access to things behind a firewall
+	thing.addRemoteClient = function (wss_uri, jwt) {
+		const proxy = URL.parse(wss_uri);
+		const wsKey = b2a(Math.random().toString(36).substring(2, 10) +
+			Math.random().toString(36).substring(2, 10));
+		const wsAccept = new HASHES.SHA1().b64(wsKey +
+							"258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+		const options = {
+			hostname: proxy.hostname,
+			port: proxy.port,
+			path: proxy.path,
+			method: 'GET',
+			headers: {
+				'Authorization': jwt,
+				'Connection': 'Upgrade',
+				'Sec-WebSocket-Key': wskey,
+				'Sec-WebSocket-Version': 13
+			}
+		};
+				
+		let connect = function (resolve, reject) {
+			const request = HTTPS.request(options);
+			
+			request.on('upgrade', (res, socket, head) => {
+				console.log('got response to upgrade request');
+				console.log('  with head length = ' + head.length);
+				// response should be 101 Switching Protocols
+				if (res.statusCode !== 101 ||
+					res.headers['Upgrade'] !== 'websocket' ||
+					res.headers['Connection'] !== 'Upgrade' ||
+					res.headers['Sec-WebSocket-Accept'] !== wsAccept) {
+					reject(new Error("couldn't connect to proxy: " + proxy.hostname));
+				}
+				
+				thing.message = ""; // empty continuation buffer
+			
+				// set up listener for incoming frames      
+				socket.on('data', data => {    			
+					// if PING respond with PONG
+					let octet = data.charCodeAt(0);
+				
+					if ((octet & 15) != 0x09) {
+						// test FIN to check for continuation frame
+						if ((octet & 128) == 128) {
+							// final frame for this message
+							let message = thing.message + ws_receive(data);
+							thing.message = "";
+							//console.log('received: ' + message);
+							thing.receive(socket, message);
+						} else {
+							// save continuation
+							thing.message += ws_receive(data);
+						}
+					}
+				});
+
+				
+				// notify external web hub
+				
+				
+				// finally add socket to thing
+				thing.addSocket(socket);
+				resolve(socket);
+			});
+			
+			req.on('error', () => {
+				reject(new Error("client error"));
+			});
+			
+			req.on('close', () => {
+				console.log("proxy connection closed");
+				// should periodically try to reconnect 
+			});
+		};
+		
+		return new Promise(function (resolve, reject) {
+			connect(resolve, reject);
+		});
+
 	};
 	
 	// sent text string to all clients via web sockets
@@ -1302,7 +1403,7 @@ module.exports = options => {
 		let uri = URL.parse(URL.resolve(config.base, request.url));
 
 		console.log('HTTP request: ' + request.method + ' ' + uri.path);
-		console.log(request.headers);
+		//console.log(request.headers);
 	
 		if (request.method === "OPTIONS") {
 			response.writeHead(200, {

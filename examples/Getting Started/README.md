@@ -75,6 +75,8 @@ You should then open the web application at http://localhost:8888/light.html. Th
 
 Note that this example doesn't deal with user account management and  JSON web tokens. That is covered in a separate example.
 
+> &#128027; I've discovered a bug - the web client library doesn't restablish the web socket when it was dropped by the browser after a period of inactivity even though the window still has the focus. Another bug is that when the application starts, the bulb is dark when the slider says it is bright!
+
 ## What next?
 
 NodeJS has a thriving community with lots of modules you can take advantage of when developing your applications. This includes modules for IoT technologies like Bluetooth, ZigBee and many more that you can use to interface to IoT devices when you want to expose them in a simple way for client applications for the Web of Things. 

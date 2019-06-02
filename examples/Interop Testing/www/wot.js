@@ -158,8 +158,10 @@ class ThingAction {
 class ThingEvent {
 	constructor(thing, name, meta) {
 		this.name = name;
-		this.description = meta.description;
-		this.type = meta.type;
+		if (meta) {
+			this.description = meta.description;
+			this.type = meta.type;
+		}
 		this.thing = thing;
 		this.observers = [];
 	}
@@ -799,7 +801,7 @@ class ArenaWebHubWS extends ArenaWebHub {
     }
     
     receive (thing, json) {
-    	//console.log("ArenaWebHubWS.receive: " + JSON.stringify(json));
+    	console.log("ArenaWebHubWS.receive: " + JSON.stringify(json));
     	if (json.event) {
     		// event notification
     		if (thing.events.hasOwnProperty(json.event)) {
@@ -816,13 +818,16 @@ class ArenaWebHubWS extends ArenaWebHub {
     	} else if (json.state) {
     		// multiple property update
     		let state = json.state;
-    		let properties =thing.properties;
+    		let properties = thing.properties;
     		
     		for (let name in state) {
     			if (state.hasOwnProperty(name)) {
     				let property = properties[name];
+    				console.log("initialising " + name);
     				property.notify(state[name]);
+    				console.log("notified " + name);
     				property.value = state[name];
+    				console.log("set " + name + " to " + JSON.stringify(state[name]));
     			}
     		}
     		console.log("initialised thing's state");

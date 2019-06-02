@@ -79,9 +79,9 @@ Any help with these would be welcomed.
 * **More efficient handling of high speed streams**, allowing you to read and write data in blocks rather than having to do so one data point at a time.  The protocols will be able to choose how to best buffer data for maximum performance.
 * **Peer to peer networks of Web Hubs**, where these may be behind different firewalls. W3C's [WebRTC](https://www.w3.org/TR/webrtc/) standard is designed for peer to peer data transfer and is supported by Web browsers.
 * **Enlarged set of example applications** for different domains, IoT technologies and standards.
-* **Example of how to manage multiple things** including discovery, installation and configuration.
+* **Example of how to manage multiple things** including discovery, installation, configuration, update and de-installation.
 
-Note that the examples include a client-side Web of Things library (see "[client/wot.js](client/wot.js)") with an adaptation layer for different Web of Things platforms. A further library is planned to make it easy to work with semantic annotations that describe the kinds of things (e.g. a _light_), their capabilities (e.g. dimmable), and the context in which they reside (e.g. my kitchen).
+Note that the examples include a client-side Web of Things library (see "[client/wot.js](client/wot.js)") with an adaptation layer for different Web of Things platforms. A further library is planned to make it easy to work with semantic annotations that describe the kinds of things (e.g. a _light_), their capabilities (e.g. _dimmable_), and the context in which they reside (e.g. _my kitchen_).
 
 ## Web of Things
 
@@ -126,7 +126,7 @@ let webhub = require('arena-webhub')({
 
 The certs, port and account path are optional and default to ".", 8888 and "/account" respectively. The accountManager and validateJWT are required application callbacks. The accountManager callback is passed two arguments for the HTTPS request and response (see the HTTPS node module), and is responsible for handling the request and the associated response. The validateJWT callback is passed two arguments for the JSON Web Token and the URL path for the connection. The return value is true if the token is currently valid for this path, or false if it isn't.
 
-The Arena Web Hub module exports a single function for applications to expose things for access by clients. The _produce_ method is passed a thing description as a JSON object and returns a promise for the exposed thing, for example:
+The Arena Web Hub module exports a single function for applications to expose things for access by clients. The _produce_ method is passed a thing description as a JSON object and returns the object for the exposed thing, you can later call the thing's expose method to make it available to clients, for example:
 
 ```javascript
 let thing = webhub.produce({
@@ -154,13 +154,13 @@ thing.expose();  // expose thing to clients
 
 ## Integrated Web Server
 
-Web applications for access from Web browsers involve a set of  Web page resources. The Arena Web Hub looks for these in the "./www" folder. The integrated Web server will serve up the file at "./www/index.html" for URL GET requests with the path "/".  Applications are responsible for managing Web resources  for the Web server. This includes web page scripts and their use of cookies.
+Web applications, for access from Web browsers, involve a set of  Web page resources. The Arena Web Hub looks for these in the "./www" folder. The integrated Web server will serve up the file at "./www/index.html" for URL GET requests with the path "/".  Applications are responsible for managing Web resources  for the Web server. This includes web page scripts and their use of cookies.
 
 ## Thing Descriptions
 
 The object interface for things is described using JSON-LD with a default context. Arena Web Hub follows the W3C Thing Description specification, see: https://www.w3.org/TR/wot-thing-description/
 
-Note that the specification is still evolving, and the Arena Web Hub may not be fully compliant to the latest version of the [editor's draft specification](https://w3c.github.io/wot-thing-description/). An example is that Arena doesn't currently support protocol binding templates using "forms". This is because protocol binding templates aren't yet capable of a complete description of Arena's use of HTTPS, Server-Sent Events and WebSockets.
+Note that the specification is still evolving, and the Arena Web Hub may not be fully compliant to the latest version of the [editor's draft specification](https://w3c.github.io/wot-thing-description/). For instance, Arena doesn't currently support protocol binding templates using "forms". This is because protocol binding templates aren't yet capable of a complete description of Arena's use of HTTPS, Server-Sent Events and WebSockets.
 
 ## Thing API
 
@@ -198,7 +198,7 @@ function observer (data) {
 }
 ```
 
-Actions expose the following interface, where optional timeout is in milliseconds, and the handler to be called is set using addActionHandler, see above, where the callback takes a single argument with the input for the action, and returns a promise that resolves to the output from the action.
+Actions expose the following interface, where the optional timeout is in milliseconds, and the handler to be called is set using addActionHandler, see above, where the callback takes a single argument with the input for the action, and returns a promise that resolves to the output from the action.
 
 ```javascript
 class ThingAction {
@@ -231,9 +231,9 @@ A common situation is where the hub that is exposing a thing is behind a firewal
 
 * As the hub behind the firewall with an application that seeks to expose a thing remotely
 
-  * This application needs to get authorisation for the remote access from the external hub which should return the URI for a Web Socket (WSS) connection along with the JASON Web Token (JWT)  for use when establishing that connection.
+  * This application first needs to request authorisation for the remote access from the external hub, which should return the URI for a Web Socket (WSS) connection along with the JASON Web Token (JWT)  for use when establishing the connection to the external hub.
 
-  * The application can then ask the hub to open and add the connection for the given thing. The promise resolves to the new WebSocket connection when it has been established.
+  * The application can then ask the internal hub, it is running on, to open and add the connection for the given thing using the following interface. The promise resolves to the new WebSocket connection when it has been established.
 
     ``` javascript
     thing.addRemoteClient(wss_uri, jwt)  // returns promise for the connection
@@ -241,7 +241,7 @@ A common situation is where the hub that is exposing a thing is behind a firewal
 
 * As a hub outside of the firewall that republishes (i.e. proxies) a thing from behind the firewall
 
-  * The application on this hub needs to authorise the proxying of things from behind the firewall using the URL space it reserved when configuring the hub.
+  * The application on this (external) hub needs to authorise the proxying of things from behind the firewall using the URL space it reserved when configuring the hub.
 
   	```javascript
   	thing.proxy(jwt);  // republish the thing that connects using this token
