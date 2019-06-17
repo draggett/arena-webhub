@@ -1,5 +1,7 @@
 // Arena Web Hub with support for JWT, HTTPS, Server-Sent Events and WebSockets
 
+console.log('starting arena ...');
+
 var HTTPS = require("https"),
 	URL = require('url'),
 	PATH = require('path'),
@@ -380,6 +382,7 @@ function b2a (str) {
 // produce takes a JSON thing description and returns a thing
 // you then need to expose it to make it available to clients
 function produce(model) {
+	console.log("called produce");
 	console.log("model is " + JSON.stringify(model, null, 4));
 	let thing = {
 		properties: {},
@@ -395,8 +398,98 @@ function produce(model) {
 		actions = model.actions,
 		events = model.events;
 		
-	thing.id = model.id;
+	thing.id = model.id 
 	thing.name = model.name;
+	
+	// some hacks for Ege's playground validator
+	// describing arena's HTTPS support for GET, PUT and POST
+	// as we can't yet describe arena's web socket subprotocol
+
+	if (!model.id)
+		model.id = "urn:example.org/" + model.name;
+		
+	model.title = model.name;
+	model.base = "https://localhost:8888/";
+	
+	model["@context"] = ["https://www.w3.org/2019/wot/td/v1"];
+    model.securityDefinitions = {
+	   "bearer_sc": {
+		  "in":"header",
+		  "scheme": "bearer",
+		  "format": "jwt",
+		  "alg": "ES256",
+		  "authorization": "https://localhost:8888/authorize"
+	   }
+	};
+        
+    model.security = ["bearer_sc"];
+    
+   // set forms for all properties
+    
+    for (name in properties) {
+		if (properties.hasOwnProperty(name)) {
+			let property = properties[name];
+			property.forms = [{
+				"op": "readproperty",
+				"href": "properties/" + name,
+                "contentType": "application/json",
+                "htv:methodName": "GET"
+			}, {
+				"op": "writeproperty",
+				"href": "properties/" + name,
+                "contentType": "application/json",
+                "htv:methodName": "GET"
+			}];
+		}
+	}
+    
+    // set forms for all actions
+    
+    for (name in actions) {
+		if (actions.hasOwnProperty(name)) {
+			let action = actions[name];
+			action.forms = [{
+				"op": "invokeaction",
+				"href": "actions/" + name,
+                "contentType": "application/json",
+                "htv:methodName": "POST"
+			}];
+			action.safe = false;
+			action.idempotent = false;
+		}
+	}
+	
+    // set forms for all events
+	
+    for (name in events) {
+		if (events.hasOwnProperty(name)) {
+			let event = events[name];
+			event.forms = [{
+				"op": "subscribeevent",
+				"href": "events/" + name,
+                "contentType": "application/json",
+                "subprotocol": "longpoll"
+			}];
+			action.safe = false;
+			action.idempotent = false;
+		}
+	}
+	
+	// describe handlers for getting and setting all properties
+	
+	model.forms = [{
+        "op": "readallproperties",
+        "href": "properties",
+        "contentType": "application/json",
+        "htv:methodName": "GET"
+    }, {
+        "op": "writeallproperties",
+        "href": "properties",
+        "contentType": "application/json",
+        "htv:methodName": "PUT"
+    }];
+
+	// this tells my client that the server supports the arena protocols
 	model.platform = "https://github.com/draggett/arena-webhub";
 
 	thing.emitEvent = function (name, json) {
