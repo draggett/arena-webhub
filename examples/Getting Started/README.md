@@ -71,7 +71,7 @@ This relies on the file "[package.json](package.json)" which declares the depend
 node light.js
 ```
 
-You should then open the web application at http://localhost:8888/light.html. The web page and its associated resources can be found in the "www" directory.
+You should then open the web application at https://localhost:8888/light.html. The web page and its associated resources can be found in the "www" directory.
 
 Note that this example doesn't deal with user account management and  JSON web tokens. That is covered in a separate example.
 
