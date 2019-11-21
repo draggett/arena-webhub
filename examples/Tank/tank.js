@@ -11,6 +11,7 @@ let webhub = require('arena-webhub')({
 
 let td = {
 	"name": "tank",
+	"id": "tank123",
     "events": {
         "high": null,
         "low": null
