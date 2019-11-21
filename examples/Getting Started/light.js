@@ -42,7 +42,9 @@ let td = {
 };
 
 try {
+	console.log("calling produce");
 	let thing = webhub.produce(td);
+	console.log("returned from produce");
 	try {
 		console.log("produced thing: " + thing.name);
 
