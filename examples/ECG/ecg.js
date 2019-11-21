@@ -11,6 +11,7 @@ let webhub = require('arena-webhub')({
 
 let td = {
     "name": "ecg",
+    "id": "ecg123",
     "description": "Combined measurement of ECG, breathing and seismocardiogram",
     "rate": 100,
     "properties": {
